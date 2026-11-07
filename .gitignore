@@ -1,0 +1,21 @@
+node_modules/
+dist/
+.cache/
+__pycache__/
+*.tsbuildinfo
+playwright-report/
+test-results/
+.DS_Store
+
+.venv/
+.env.secrets
+.env
+.env.local
+.env.*.local
+
+# Dataset publishing inputs live in R2, not Git.
+public/data/
+
+# Downloaded transfer utilities
+rclone-*.zip
+rclone-*-linux-amd64/

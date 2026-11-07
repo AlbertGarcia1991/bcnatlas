@@ -1,0 +1,58 @@
+import { test, expect } from '@playwright/test';
+test('explore real snapshots, change years, stack layers and export', async ({ page }) => {
+  const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
+  page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
+  await page.goto('/');
+  await expect(page.locator('.map-footer')).toContainText('7,741 selected records');
+  await expect(page.locator('canvas.maplibregl-canvas')).toBeVisible();
+  await page.getByRole('button', { name: '2023', exact: true }).click();
+  await expect(page.locator('.map-footer')).toContainText('7,724 selected records');
+  await page.getByRole('switch', { name: 'Street trees', exact: true }).click();
+  await expect(page.locator('.map-footer')).toContainText('155,638 selected records');
+  await page.getByRole('switch', { name: 'Park trees', exact: true }).click();
+  await expect(page.locator('.map-footer')).toContainText('191,184 selected records');
+  await page.getByLabel('Explore an area').selectOption('2');
+  await expect(page).toHaveURL(/district=2/);
+  await expect(page.locator('.map-footer')).not.toContainText('191,184 selected records');
+  await page.getByRole('button', { name: 'Individual points', exact: true }).click();
+  await expect(page.locator('.legend')).toContainText('Record locations');
+  await page.locator('canvas').click({ position: { x: 600, y: 300 } });
+  await expect(page.getByText('Around this point')).toBeVisible();
+  const download = page.waitForEvent('download'); await page.getByRole('button', { name: 'Export curated CSV' }).click();
+  expect((await download).suggestedFilename()).toBe('barcelona-atlas-2023.csv');
+  await page.getByRole('button', { name: 'Data & sources' }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.getByRole('dialog')).toContainText('Q4 inventory snapshot');
+  await expect(page.getByRole('dialog').getByRole('link', { name: 'Dataset page' })).toHaveCount(3);
+  await page.keyboard.press('Escape'); await expect(page.getByRole('dialog')).not.toBeVisible();
+  await expect(page.getByRole('button', { name: 'Data & sources' })).toBeFocused();
+  await page.reload();
+  await expect(page.getByRole('switch', { name: 'Street trees', exact: true })).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByRole('button', { name: 'Individual points', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  expect(errors).toEqual([]);
+});
+test('desktop screenshot and mobile controls', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.map-footer')).toContainText('7,741 selected records');
+  await page.waitForTimeout(2500);
+  await page.screenshot({ path: 'test-results/desktop.png', fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'Map controls', exact: true }).click();
+  await expect(page.getByRole('switch', { name: 'Traffic accidents', exact: true })).toBeVisible();
+  await page.getByRole('switch', { name: 'Traffic accidents', exact: true }).click();
+  await page.getByRole('button', { name: 'Close controls', exact: true }).click();
+  await expect(page.getByText('Your city. Your perspective.')).toBeVisible();
+  await page.getByRole('button', { name: 'Explore traffic accidents', exact: true }).click();
+  await expect(page.locator('.map-footer')).toContainText('7,741 selected records');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.waitForTimeout(1500); // Allow the WebGL worker to paint the re-enabled layer.
+  await page.screenshot({ path: 'test-results/mobile.png', fullPage: true });
+});
+test('snapshot failure exposes retry and recovers', async ({ page }) => {
+  await page.route('**/data/accidents-2025.json', route => route.abort());
+  await page.goto('/');
+  await expect(page.getByRole('alert')).toContainText('A data snapshot could not load');
+  await page.unroute('**/data/accidents-2025.json');
+  await page.getByRole('button', { name: 'Retry', exact: true }).click();
+  await expect(page.locator('.map-footer')).toContainText('7,741 selected records');
+});

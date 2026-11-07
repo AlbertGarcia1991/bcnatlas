@@ -1,0 +1,216 @@
+{
+  "checkedAt": "2026-11-07T10:05:25.289255+00:00",
+  "scope": "Representative resource checks only. The full catalog has 558 datasets and 6825 resources; these checks do not validate every resource.",
+  "results": [
+    {
+      "dataset": "renda-disponible-llars-bcn",
+      "resource": "f18e28ed-dcee-4904-b350-52088201a7a0",
+      "name": "2023_renda_disponible_llars_per_persona.csv",
+      "format": "CSV",
+      "rows": 1068,
+      "mapped": 0,
+      "geometry": [],
+      "status": "table",
+      "fields": [
+        "Any",
+        "Codi_Districte",
+        "Nom_Districte",
+        "Codi_Barri",
+        "Nom_Barri",
+        "Seccio_Censal",
+        "Import_Euros"
+      ]
+    },
+    {
+      "dataset": "educacio-ensenyament-infantil",
+      "resource": "114a72b3-2c9c-40c6-a7e6-d85dca704726",
+      "name": "opendatabcn_educacio_ensenyament_infantil.csv",
+      "format": "CSV",
+      "rows": 1230,
+      "mapped": 1230,
+      "geometry": [
+        "Point"
+      ],
+      "status": "mapped",
+      "fields": []
+    },
+    {
+      "dataset": "sanitat-hospitals-atencio-primaria",
+      "resource": "9e135848-eb0a-4bc5-8e60-de558213b3ed",
+      "name": "opendatabcn_sanitat_hospitals-i-centres-atencio-primaria.csv",
+      "format": "CSV",
+      "rows": 146,
+      "mapped": 146,
+      "geometry": [
+        "Point"
+      ],
+      "status": "mapped",
+      "fields": []
+    },
+    {
+      "dataset": "fonts",
+      "resource": "8f63c3cf-399a-4a8d-a73d-eb1fca80d7f0",
+      "name": "2026_Fonts_beure.csv",
+      "format": "CSV",
+      "rows": 1760,
+      "mapped": 1760,
+      "geometry": [
+        "Point"
+      ],
+      "status": "mapped",
+      "fields": []
+    },
+    {
+      "dataset": "punts-wifi",
+      "resource": "a118d6f8-b33d-4091-94ae-c14b8bb0ecbb",
+      "name": "opendatabcn_Internet_Wifi-BCN-CSV.csv",
+      "format": "CSV",
+      "rows": 1066,
+      "mapped": 1039,
+      "geometry": [
+        "Point"
+      ],
+      "status": "mapped",
+      "fields": []
+    },
+    {
+      "dataset": "estacions-bus",
+      "resource": "2d190658-93ac-4c43-a23f-c5d313b1ae9c",
+      "name": "ESTACIONS_BUS.csv",
+      "format": "CSV",
+      "rows": 3226,
+      "mapped": 3226,
+      "geometry": [
+        "Point"
+      ],
+      "status": "mapped",
+      "fields": []
+    },
+    {
+      "dataset": "qualitat-aire-estacions-bcn",
+      "resource": "7de4c08f-5962-4d4d-9dca-e10badffbffd",
+      "name": "2026_qualitat_aire_estacions.csv",
+      "format": "CSV",
+      "rows": 71,
+      "mapped": 71,
+      "geometry": [
+        "Point"
+      ],
+      "status": "mapped",
+      "fields": []
+    },
+    {
+      "dataset": "infraestructures-inventari-bancs",
+      "resource": "cdec2de4-9098-4b88-94bb-d1ec12959b3a",
+      "name": "Infraestruc_Mobiliari_Urba_Bancs.csv",
+      "format": "CSV",
+      "rows": 28946,
+      "mapped": 28946,
+      "geometry": [
+        "Point"
+      ],
+      "status": "mapped",
+      "fields": []
+    },
+    {
+      "dataset": "arbrat-zona",
+      "resource": "29cd5c1f-11b1-404b-b3a5-ae29940b8c55",
+      "name": "OD_Arbrat_Zona_BCN.csv",
+      "format": "CSV",
+      "rows": 44012,
+      "mapped": 44012,
+      "geometry": [
+        "Point"
+      ],
+      "status": "mapped",
+      "fields": []
+    },
+    {
+      "dataset": "accidents-persones-gu-bcn",
+      "resource": "8e7388ee-ffbd-446e-a8ad-c427a99da48d",
+      "name": "2025_accidents_persones_gu_bcn.csv",
+      "format": "CSV",
+      "rows": 17200,
+      "mapped": 17200,
+      "geometry": [
+        "Point"
+      ],
+      "status": "mapped",
+      "fields": []
+    },
+    {
+      "dataset": "habitatges-us-turistic",
+      "resource": "b32fa7f6-d464-403b-8a02-0292a64883bf",
+      "name": "hut_comunicacio_opendata.csv",
+      "format": "CSV",
+      "rows": 10721,
+      "mapped": 10721,
+      "geometry": [
+        "Point"
+      ],
+      "status": "mapped"
+    },
+    {
+      "dataset": "punts-recarrega-vehicles-electrics",
+      "resource": "e0857d01-ae76-485e-b910-36dfd0a7a549",
+      "name": "2023_2T_Punts_Recarrega_Vehicle_Electric.json",
+      "format": "JSON",
+      "rows": 393,
+      "mapped": 393,
+      "geometry": [
+        "Point"
+      ],
+      "status": "mapped"
+    },
+    {
+      "dataset": "sanitat-farmacies",
+      "resource": "b89329ea-81ea-496c-9cd0-6758336e6c20",
+      "name": "opendatabcn_sanitat_farmacies.csv",
+      "format": "CSV",
+      "rows": 1135,
+      "mapped": 1135,
+      "geometry": [
+        "Point"
+      ],
+      "status": "mapped"
+    },
+    {
+      "dataset": "xarxa-refugis-climatics",
+      "resource": "7ecae024-6cb2-427d-b2d0-e170500e2a38",
+      "name": "opendatabcn_NP-NASIA_xarxa-refugis-climatics-csv.csv",
+      "format": "CSV",
+      "rows": 563,
+      "mapped": 563,
+      "geometry": [
+        "Point"
+      ],
+      "status": "mapped"
+    },
+    {
+      "dataset": "carril-bici",
+      "resource": "4608cf0c-2f11-4a25-891f-c5afc3af82c5",
+      "name": "CARRIL_BICI.geojson",
+      "format": "GeoJSON",
+      "rows": 449,
+      "mapped": 449,
+      "geometry": [
+        "LineString",
+        "MultiLineString"
+      ],
+      "status": "mapped"
+    },
+    {
+      "dataset": "poblacio-vulnerable",
+      "resource": "cc9a9c65-0404-497d-8019-b8c048e845c9",
+      "name": "2018_ate_densitat_0-4_od.gpkg",
+      "format": "GPKG",
+      "rows": 1879,
+      "mapped": 1879,
+      "geometry": [
+        "MultiPolygon",
+        "Polygon"
+      ],
+      "status": "mapped"
+    }
+  ]
+}

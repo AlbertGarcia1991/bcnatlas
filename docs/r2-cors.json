@@ -1,0 +1,21 @@
+[
+  {
+    "AllowedOrigins": [
+      "https://bcnatlas.com",
+      "https://www.bcnatlas.com"
+    ],
+    "AllowedMethods": [
+      "GET",
+      "HEAD"
+    ],
+    "AllowedHeaders": [
+      "Range"
+    ],
+    "ExposeHeaders": [
+      "ETag",
+      "Content-Length",
+      "Content-Range"
+    ],
+    "MaxAgeSeconds": 3600
+  }
+]

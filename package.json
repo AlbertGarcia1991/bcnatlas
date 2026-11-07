@@ -1,0 +1,36 @@
+{
+  "name": "barcelona-atlas",
+  "version": "1.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "vitest run && .venv/bin/python -m unittest discover -s tests -p \"test_*.py\"",
+    "data:refresh": "python3 scripts/import_data.py",
+    "test:e2e": "playwright test",
+    "dev:web": "vite --host 0.0.0.0",
+    "start": ".venv/bin/python -m uvicorn server.app:app --host 127.0.0.1 --port 8000",
+    "setup:api": "python3 -m venv .venv && .venv/bin/pip install -r requirements.txt",
+    "catalog:refresh": "python3 scripts/sync_catalog.py",
+    "r2:publish": ".venv/bin/python -m scripts.r2_assets",
+    "r2:verify": ".venv/bin/python -m scripts.r2_verify",
+    "r2:mirror": ".venv/bin/python -m scripts.r2_mirror"
+  },
+  "dependencies": {
+    "lucide-react": "^0.468.0",
+    "maplibre-gl": "^6.16.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.1.0",
+    "typescript": "~5.9.3",
+    "vite": "^7.2.0",
+    "vitest": "^5.1.0"
+  }
+}
