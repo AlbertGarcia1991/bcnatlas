@@ -20,6 +20,6 @@ export type Settings = { year: number; enabled: LayerId[]; district: number; rad
 export function readSettings(search: string): Settings {
   const q = new URLSearchParams(search);
   const numeric = (key: string, fallback: number, min: number, max: number) => { const n = q.has(key) ? Number(q.get(key)) : fallback; return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback; };
-  return { year: Math.round(numeric('year', 2025, 2023, 2025)), enabled: q.has('layers') ? layers.filter(l => q.get('layers')!.split(',').includes(l.id)).map(l => l.id) : ['accidents'], district: Math.round(numeric('district', 0, 0, 10)), radius: numeric('radius', 22, 8, 50), opacity: numeric('opacity', 75, 20, 100), intensity: numeric('intensity', 1, .2, 3), mode: q.get('mode') === 'points' ? 'points' : 'heatmap' };
+  return { year: Math.round(numeric('year', 2025, 1800, 2026)), enabled: q.has('layers') ? layers.filter(l => q.get('layers')!.split(',').includes(l.id)).map(l => l.id) : ['accidents'], district: Math.round(numeric('district', 0, 0, 10)), radius: numeric('radius', 22, 8, 50), opacity: numeric('opacity', 75, 20, 100), intensity: numeric('intensity', 1, .2, 3), mode: q.get('mode') === 'points' ? 'points' : 'heatmap' };
 }
 export function settingsQuery(s: Settings): string { return new URLSearchParams({ year: String(s.year), layers: s.enabled.join(','), district: String(s.district), radius: String(s.radius), opacity: String(s.opacity), intensity: String(s.intensity), mode: s.mode }).toString(); }

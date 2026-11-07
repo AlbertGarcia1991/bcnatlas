@@ -3,13 +3,14 @@ import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateActio
 import { Search } from 'lucide-react';
 import { dataUrl } from './dataSource';
 import { canApplyFilter, defaultMetric, loadResource, overlayColors, preferredResource, resourceKey, type Catalog, type CatalogDataset, type CatalogOverlay, type CatalogResource } from './catalog';
-import { curatedDatasetIds, datasetTitles, datasetSeries, seriesResource, seriesYears } from './datasetChoices';
+import { curatedDatasetIds, datasetTitles, datasetSeries } from './datasetChoices';
 import type { LayerId } from './data';
+import { editions, editionForYear } from './timeline';
 import OverlayPanel from './OverlayPanel';
 
 type Selection = { resource: string; member?: string; year?: string; filters?: Record<string,string> };
-type Props = { overlays: CatalogOverlay[]; setOverlays: Dispatch<SetStateAction<CatalogOverlay[]>>; curated: LayerId[]; curatedYear: number; disableCurated: (id: LayerId) => void; district: number; restoring: boolean };
-export default function DatasetLayers({ overlays, setOverlays, curated, curatedYear, disableCurated, district, restoring }: Props) {
+type Props = { overlays: CatalogOverlay[]; setOverlays: Dispatch<SetStateAction<CatalogOverlay[]>>; curated: LayerId[]; curatedYear: number; disableCurated: (id: LayerId) => void; district: number; restoring: boolean; onCatalog: (catalog: Catalog) => void; temporal: {status:Record<string,string>; failures:Record<string,string>; retry:()=>void} };
+export default function DatasetLayers({ overlays, setOverlays, curated, curatedYear, disableCurated, district, restoring, onCatalog, temporal }: Props) {
   const [catalog, setCatalog] = useState<Catalog>();
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
@@ -30,13 +31,22 @@ export default function DatasetLayers({ overlays, setOverlays, curated, curatedY
       if(ac.signal.aborted)return;
       const missing = new Set<string>(status?.missing?.map((m:{key:string})=>m.key.split('/')[2]) || []);
       const approved=auditedCatalog(c);
-      setCatalog({...approved,datasets:approved.datasets.map(d=>({...d,resources:d.resources.map(r=>({...r,available:!missing.has(r.id)}))}))});
+      const available={...approved,datasets:approved.datasets.map(d=>({...d,resources:d.resources.map(r=>({...r,available:!missing.has(r.id)}))}))};
+      setCatalog(available); onCatalog(available);
     }).catch(e=>{if(!ac.signal.aborted)setError(e.message)});
     return ()=>ac.abort();
   }, [retry]);
   useEffect(()=>()=>{for(const ac of requests.current.values()) ac.abort();},[]);
   const datasets = useMemo(()=> (catalog?.datasets || []).filter(d=>d.mapMethods?.length && d.resources.some(r=>r.previewSupported))
     .sort((a,b)=>Number(!!curatedDatasetIds[b.id])-Number(!!curatedDatasetIds[a.id]) || a.title.localeCompare(b.title)),[catalog]);
+  useEffect(()=>{
+    if(!catalog || restoring || [2023,2024,2025].includes(curatedYear))return;
+    for(const d of datasets.filter(d=>curated.includes(curatedDatasetIds[d.id]))) {
+      if(requests.current.has(d.id))continue;
+      const target=editionForYear(editions(d.resources.filter(r=>curatedDatasetIds[d.id]==='accidents' || /4t|q4/i.test(r.name))),curatedYear);
+      if(target)start(d,target.resource,{resource:target.resource.id,member:target.member,year:target.year});
+    }
+  },[catalog,curatedYear,curated.join(','),restoring]);
   const shown = datasets.filter(d=> (!activeOnly || overlays.some(o=>o.dataset.id===d.id) || curated.includes(curatedDatasetIds[d.id]) || pending[d.id]) && query.toLowerCase().split(/\s+/).every(w=>[d.title,d.id,d.category,datasetTitles[d.id],...d.tags].join(' ').toLowerCase().includes(w)));
   function stop(d:CatalogDataset) {
     requests.current.get(d.id)?.abort(); requests.current.delete(d.id);
@@ -47,6 +57,9 @@ export default function DatasetLayers({ overlays, setOverlays, curated, curatedY
   function start(d:CatalogDataset, resource:CatalogResource, selection:Selection) {
     const occupied = new Set([...currentOverlays.current.map(o=>o.dataset.id),...requests.current.keys()]);
     if(!occupied.has(d.id) && occupied.size>=6) {setErrors(e=>({...e,[d.id]:'Six layers are loaded. Turn one off to add another.'}));return;}
+    const group=datasetSeries(d.resources).find(g=>g.resources.some(r=>r.id===resource.id));
+    const target=editionForYear(editions(group?.resources || [resource],selection.member),curatedYear,resource);
+    if(target){resource=target.resource;selection={...selection,resource:resource.id,member:target.member,year:target.year};}
     requests.current.get(d.id)?.abort();
     const ac = new AbortController(); requests.current.set(d.id,ac);
     setPending(p=>({...p,[d.id]:true})); setErrors(e=>({...e,[d.id]:''})); setSelections(s=>({...s,[d.id]:selection}));
@@ -67,7 +80,7 @@ export default function DatasetLayers({ overlays, setOverlays, curated, curatedY
   }
   return <section className="dataset-layers" aria-label="Map layers">
     <div className="section-heading"><h2>Map layers</h2><span>{datasets.length} datasets</span></div>
-    <p className="section-description">Toggle a dataset to map it. Choose its year or breakdown below.</p>
+    <p className="section-description">Toggle a dataset to map it. Use the bottom timeline for every layer’s year.</p>
     <label className="layer-search"><Search size={14}/><input aria-label="Search map layers" placeholder="Search all map layers…" value={query} onChange={e=>setQuery(e.target.value)}/></label>
     <label className="active-only"><input type="checkbox" checked={activeOnly} onChange={e=>setActiveOnly(e.target.checked)}/>Show active layers only</label>
     {error&&<p role="alert">{error} <button onClick={()=>setRetry(n=>n+1)}>Retry</button></p>}
@@ -80,24 +93,27 @@ export default function DatasetLayers({ overlays, setOverlays, curated, curatedY
       const curatedResource = curated.includes(curatedDatasetIds[d.id]) ? preferredResource(d.resources.filter(r=>r.years.includes(String(curatedYear)) && (!d.id.startsWith('arbrat-') || /4t/i.test(r.name)))) : undefined;
       const resource=d.resources.find(r=>r.id===(selection?.resource || overlay?.resource.id)) || curatedResource || preferredResource(d.resources.filter(r=>r.previewSupported))!;
       const group=groups.find(g=>g.resources.some(r=>r.id===resource.id))!;
-      const year=resource.years.length ? [...resource.years].sort().at(-1)! : 'current';
-      const choose=(r:CatalogResource|undefined)=>{if(!r)return;const s={resource:r.id};setSelections(ss=>({...ss,[d.id]:s}));if(active||pending[d.id])start(d,r,s);};
+      const year=curatedYear;
+      const choose=(r:CatalogResource|undefined)=>{if(!r)return;const s={resource:r.id,filters:overlay?.data.filters};setSelections(ss=>({...ss,[d.id]:s}));if(active||pending[d.id])start(d,r,s);};
       const title=datasetTitles[d.id] || d.title;
       return <article className={'dataset-card '+(active?'active':'')} key={d.id}>
         <button className="layer-toggle" role="switch" aria-checked={active||!!pending[d.id]} aria-label={title} disabled={restoring} onClick={()=>active||pending[d.id]?stop(d):start(d,resource,selection||{resource:resource.id})}>
           <span className="layer-copy"><small>{d.category}</small><strong>{title}</strong></span><span className="switch"><span/></span>
         </button>
-        <details className="edition-controls" open={active||!!pending[d.id]}><summary>{year==='current'?'Current / undated':year}{groups.length>1?` · ${group.label}`:''} · Choose edition</summary><div className="dataset-selectors">
-          <label>Year<select aria-label={`Year for ${title}`} value={year} onChange={e=>choose(seriesResource(group,e.target.value))}>{seriesYears(group).map(y=><option key={y} value={y}>{y==='current'?'Current / undated':y}</option>)}</select></label>
-          {groups.length>1&&<label>Breakdown<select aria-label={`Breakdown for ${title}`} value={group.key} onChange={e=>{const g=groups.find(g=>g.key===e.target.value)!;choose(seriesResource(g,year)||preferredResource(g.resources));}}>{groups.map(g=><option key={g.key} value={g.key}>{g.label}</option>)}</select></label>}
-        </div></details>
-        {pending[d.id]&&<p role="status">Loading layer… {overlay ? 'Previous edition remains visible. ' : ''} <button onClick={()=>stop(d)}>Cancel</button></p>}
+        <div className="edition-controls"><p className="edition-summary">{year}{curated.includes(curatedDatasetIds[d.id])&&[2023,2024,2025].includes(year)?' · Curated snapshot':''} · Follows map timeline{groups.length>1?` · ${group.label}`:''}</p>{(active||pending[d.id])&&<div className="dataset-selectors">
+          {groups.length>1&&<label>Breakdown<select aria-label={`Breakdown for ${title}`} value={group.key} onChange={e=>{const g=groups.find(g=>g.key===e.target.value)!;choose(editionForYear(editions(g.resources),year)?.resource || preferredResource(g.resources));}}>{groups.map(g=><option key={g.key} value={g.key}>{g.label}</option>)}</select></label>}
+        </div>}</div>
+        {active&&temporal.status[d.id]==='missing'&&<p className="year-unavailable" role="status">No data for {year}. Layer stays enabled; choose another year on the timeline.</p>}
+        {active&&curated.includes(curatedDatasetIds[d.id])&&![2023,2024,2025].includes(year)&&!pending[d.id]&&<p className="year-unavailable" role="status">No snapshot for {year}. Choose another year on the timeline.</p>}
+        {active&&temporal.status[d.id]==='loading'&&<p role="status">Loading {year}… Other years are hidden.</p>}
+        {active&&temporal.status[d.id]==='error'&&<p role="alert" className="error">{temporal.failures[d.id]} <button onClick={temporal.retry}>Retry year</button></p>}
+        {pending[d.id]&&<p role="status">Loading layer…  <button onClick={()=>stop(d)}>Cancel</button></p>}
         {errors[d.id]&&<p className="error" role="alert">{errors[d.id]} <button onClick={()=>start(d,resource,selection||{resource:resource.id})}>Retry</button></p>}
         {resource.available===false&&<p>This edition is awaiting archive upload.</p>}
-        {overlay&&<>
+        {overlay&&(!overlay.visible || temporal.status[d.id]==='ready')&&<>
           {overlay.data.selectedRows===0&&<p role="status">No records match these filters. Clear a filter or choose another combination.</p>}
           {!!overlay.data.members.length&&<label className="resource-subselect">Layer / worksheet<select aria-label={`Worksheet for ${title}`} value={overlay.data.member||''} onChange={e=>start(d,overlay.resource,{resource:overlay.resource.id,member:e.target.value})}>{overlay.data.members.map(m=><option key={m}>{m}</option>)}</select></label>}
-          {overlay.data.years.length>1&&<label className="resource-subselect">Record year<select aria-label={`Record year for ${title}`} value={overlay.data.selectedYear||''} onChange={e=>start(d,overlay.resource,{resource:overlay.resource.id,member:overlay.data.member||'',year:e.target.value,filters:overlay.data.filters})}>{overlay.data.years.map(y=><option key={y}>{y}</option>)}</select></label>}
+
           {overlay.data.filterOptions?.map(f=><label className="resource-subselect" key={f.field}>{f.field}<select aria-label={`${f.field} for ${title}`} value={overlay.data.filters?.[f.field]||''} onChange={e=>{const filters={...overlay.data.filters};if(e.target.value)filters[f.field]=e.target.value;else delete filters[f.field];start(d,overlay.resource,{resource:overlay.resource.id,member:overlay.data.member||'',year:overlay.data.selectedYear||'',filters});}}><option value="">All categories</option>{f.values.filter(Boolean).map(v=><option key={v} disabled={!canApplyFilter(overlay.data.filters||{},f.field,v)}>{v}</option>)}</select></label>)}
           <details className="layer-details"><summary>Style, source & export · {overlay.data.mappedCount.toLocaleString()} features</summary><OverlayPanel overlays={[overlay]} district={district} onChange={next=>setOverlays(os=>os.flatMap(o=>o.dataset.id===d.id?next:o))}/></details>
         </>}

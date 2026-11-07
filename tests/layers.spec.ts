@@ -2,26 +2,31 @@ import { test, expect } from '@playwright/test';
 test('dataset toggles load directly and annual editions replace one layer',async({page})=>{
   test.setTimeout(180000);
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.goto('/?layers=');
+  await page.goto('/?layers=&year=2023');
   const search=page.getByRole('textbox',{name:'Search map layers'});
   await expect(page.locator('.dataset-card')).not.toHaveCount(0);
   await search.fill('renda-disponible-llars-bcn');
   await expect(page.locator('.dataset-card')).toHaveCount(1);
   const card=page.locator('.dataset-card');
-  await expect(card.locator('.dataset-selectors select')).toHaveCount(1);
+  await expect(card.getByLabel(/^Year for/)).toHaveCount(0);
   await card.getByRole('switch').click();
   await expect(card.locator('.layer-details')).toContainText('1,068 features',{timeout:120000});
   await expect(card.locator('.overlay-metric select option[value=""]')).toHaveCount(0);
   await expect(card.locator('.overlay-metric select')).not.toHaveValue('');
   await expect(page.locator('.map-footer')).toContainText('1 catalog overlays');
-  await card.locator('.dataset-selectors select').selectOption('2022');
+  await page.getByRole('button',{name:'2022',exact:true}).click();
   await expect(card.locator('[role=status]')).toHaveCount(0,{timeout:120000});
   await expect(page).toHaveURL(/catalog=/);
   await expect(page.locator('.map-footer')).toContainText('1 catalog overlays');
   await expect(card.locator('.overlay-period')).toContainText('2022');
+  await page.reload();
+  await search.fill('renda-disponible-llars-bcn');
+  await expect(card.locator('.overlay-period')).toContainText('2022',{timeout:120000});
+  await expect(page.getByRole('button',{name:'2022',exact:true})).toHaveAttribute('aria-pressed','true');
   await card.getByRole('switch').click();
   await expect(page.locator('.map-footer')).not.toContainText('1 catalog overlays');
   await expect(card.getByRole('switch')).toHaveAttribute('aria-checked','false');
+  await page.getByRole('button',{name:'2026',exact:true}).click();
   await search.fill('sanitat-farmacies');
   await page.locator('.dataset-card').getByRole('switch').click();
   await expect(page.locator('.layer-details')).toContainText('1,135 features',{timeout:120000});
@@ -32,7 +37,7 @@ test('dataset toggles load directly and annual editions replace one layer',async
   expect(errors).toEqual([]);
 });
 test('cancelling a pending layer cannot add it later, and failures can retry',async({page})=>{
-  await page.goto('/?layers=');
+  await page.goto('/?layers=&year=2026');
   await page.getByRole('textbox',{name:'Search map layers'}).fill('sanitat-farmacies');
   const card=page.locator('.dataset-card');
   await page.route('**/api/resource/**',async route=>{await new Promise(r=>setTimeout(r,500));await route.fulfill({status:422,contentType:'application/json',body:JSON.stringify({detail:'Unavailable edition'})}).catch(()=>{});});
@@ -46,7 +51,7 @@ test('cancelling a pending layer cannot add it later, and failures can retry',as
   await expect(card.locator('.layer-details')).toContainText('1,135 features',{timeout:120000});
 });
 test('compact layer tree can be searched and used on mobile',async({page})=>{
-  await page.setViewportSize({width:390,height:844});await page.goto('/?layers=');
+  await page.setViewportSize({width:390,height:844});await page.goto('/?layers=&year=2026');
   await page.getByRole('button',{name:'Map controls',exact:true}).click();
   await page.getByRole('textbox',{name:'Search map layers'}).fill('sanitat-farmacies');
   await page.locator('.dataset-card').getByRole('switch').click();
@@ -57,7 +62,7 @@ test('compact layer tree can be searched and used on mobile',async({page})=>{
 
 test('an empty category selection stays enabled with a neutral message',async({page})=>{
   test.setTimeout(180000);
-  await page.goto('/?layers=');
+  await page.goto('/?layers=&year=2026');
   await page.getByRole('textbox',{name:'Search map layers'}).fill('sanitat-farmacies');
   const card=page.locator('.dataset-card');
   const response=page.waitForResponse(r=>r.url().includes('/api/resource/')&&r.ok());

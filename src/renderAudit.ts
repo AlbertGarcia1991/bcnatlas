@@ -33,3 +33,7 @@ export function auditedData(resource: CatalogResource, data: ResourceData, evide
     notes:[...(data.notes||[]),...(checked.filterAudit?.mode==='representative'?[`Category filters were tested with ${checked.filterAudit.testedCombinations} representative selections; exhaustive coverage is incomplete. See the filter audit coverage report.`]:[])],
   };
 }
+
+export function auditedCases(resource: CatalogResource): AuditedCase[] {
+  return audit.resources?.[resource.id]?.cases || [];
+}

@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 // Downloads are cached by the backend; no mocked geographic records are used.
 test('catalog searches all datasets, previews pharmacies, restores and exports a layer', async ({page})=>{
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.goto('/');
+  await page.goto('/?year=2026');
   await page.getByRole('button',{name:'Dataset catalog',exact:true}).click();
   const dialog=page.getByRole('dialog',{name:'Find another perspective.'});
   await expect(dialog).toContainText('map datasets');
@@ -35,7 +35,7 @@ test('catalog searches all datasets, previews pharmacies, restores and exports a
 test('line and polygon geometry with metric coloring',async({page})=>{
   test.setTimeout(180000);
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
-  await page.goto('/?layers=');
+  await page.goto('/?layers=&year=2026');
   await page.getByRole('button',{name:'Dataset catalog',exact:true}).click();
   await page.getByRole('textbox',{name:'Search all datasets'}).fill('carril-bici');
   await page.locator('.catalog-item').filter({hasText:'Bicycle lanes of the city of Barcelona'}).click();
@@ -52,7 +52,9 @@ test('line and polygon geometry with metric coloring',async({page})=>{
   await page.getByRole('button',{name:'Preview resource',exact:true}).click();
   await expect(page.locator('.preview-stats')).toContainText('Polygon',{timeout:120000});
   await page.getByRole('button',{name:'Add to map',exact:true}).click();
-  await expect(page.locator('.overlay-card')).toHaveCount(2);
+  await expect(page.locator('.dataset-card').filter({has:page.getByRole('switch',{checked:true})})).toHaveCount(2);
+  await page.getByRole('button',{name:'2018',exact:true}).click();
+  await expect(page.locator('.overlay-card')).toHaveCount(1);
   const polygon=page.locator('.dataset-card').filter({has:page.getByRole('switch',{name:'Areas of the city of Barcelona with a highest population exposed to the impact of heat',exact:true})});
   await polygon.locator('.layer-details > summary').click();
   const attribute=polygon.locator('.overlay-metric select');
@@ -88,7 +90,7 @@ test('catalog works on a narrow screen',async({page})=>{
 });
 
 test('income data joins census boundaries and exposes its true record year',async({page})=>{
-  await page.goto('/');await page.getByRole('button',{name:'Dataset catalog',exact:true}).click();
+  await page.goto('/?year=2023');await page.getByRole('button',{name:'Dataset catalog',exact:true}).click();
   await page.getByRole('textbox',{name:'Search all datasets'}).fill('renda-disponible-llars-bcn');
   await page.locator('.catalog-item').click();
   await page.getByRole('button',{name:'Preview resource',exact:true}).click();
