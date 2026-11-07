@@ -11,10 +11,18 @@ from server.loader import ResourceError, SUPPORTED, fetch_resource, prepare, ROO
 from server import storage
 
 app=FastAPI(title='Barcelona Atlas catalog API',version='1.2.0',docs_url=None,redoc_url=None)
-slots=asyncio.Semaphore(2)
+slots=asyncio.Semaphore(max(1, min(2, int(os.environ.get('BCN_PARSER_CONCURRENCY', '2')))))
 # Process boundaries bound parser memory/failure and allow hard timeouts.
 @app.get('/api/health')
 def health(): return {'status':'ok','version':'1.2.0','dataSource':storage.source_mode()}
+
+@app.get('/api/ready')
+def ready():
+    try:
+        catalog = storage.catalog()
+        return {'status': 'ok', 'dataSource': storage.source_mode(), 'datasets': catalog['count']}
+    except (storage.StorageError, ValueError, KeyError):
+        raise HTTPException(503, 'Data storage is not ready. Check the server configuration.')
 
 @app.get('/api/data/{name}')
 def data_asset(name: str):
@@ -37,7 +45,11 @@ async def resource(dataset_id:str,resource_id:str,member:str|None=Query(None,max
     if not selected: raise HTTPException(404,'Dataset/resource pair is not in the catalog snapshot.')
     selected = {**selected, '_dataset_id': dataset_id}
     if selected['format'].upper() not in SUPPORTED: raise HTTPException(422,'Preview is unavailable for this format. Use the original resource.')
-    async with slots:
+    try:
+        await asyncio.wait_for(slots.acquire(), timeout=0.1)
+    except asyncio.TimeoutError:
+        raise HTTPException(503, 'The preview service is busy. Please retry shortly.', headers={'Retry-After': '3'})
+    try:
         env={**os.environ,'OPENBLAS_NUM_THREADS':'1','OMP_NUM_THREADS':'1'}
         process=await asyncio.create_subprocess_exec(sys.executable,'-m','server.worker',stdin=asyncio.subprocess.PIPE,stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.PIPE,cwd=ROOT,env=env)
         try:
@@ -50,5 +62,7 @@ async def resource(dataset_id:str,resource_id:str,member:str|None=Query(None,max
         payload=json.loads(out)
         if 'error' in payload: raise HTTPException(422,payload['error'])
         return JSONResponse(payload,headers={'Cache-Control':'private, max-age=300'})
+    finally:
+        slots.release()
 
 if (ROOT/'dist').exists(): app.mount('/',StaticFiles(directory=ROOT/'dist',html=True),name='web')

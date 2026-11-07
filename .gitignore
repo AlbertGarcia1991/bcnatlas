@@ -19,3 +19,7 @@ public/data/
 # Downloaded transfer utilities
 rclone-*.zip
 rclone-*-linux-amd64/
+
+.wrangler/
+.dev.vars
+.dev.vars.*

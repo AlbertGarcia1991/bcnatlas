@@ -2,6 +2,10 @@
 
 Explore Barcelona through municipal open data: stack heatmaps, inspect points, overlay cycling routes and polygons, colour geometry by source attributes, and browse the full dataset catalog.
 
+## Deploy to Cloudflare from GitHub
+
+Follow [the complete deployment guide](docs/cloudflare-deployment.md). The repository now contains a Worker that serves the frontend and R2 assets, plus a Cloudflare Container for the Python/GDAL API. This uses Workers Paid and replaces the earlier Pages-only recommendation. Same-origin R2 access avoids browser CORS configuration. Deploy with Workers Builds using `npm run build:cloudflare` and `npm run deploy:cloudflare`.
+
 ## Run
 
 Tested on Linux with Node.js 24 and Python 3.12. The Python resource reader uses POSIX process limits; Linux/macOS are supported for the API.
@@ -12,7 +16,7 @@ npm run setup:api       # Creates .venv and installs pinned Python dependencies
 npm run dev             # Starts local API :8000 and Vite :5173
 ```
 
-Open **http://localhost:5173**. Dependencies are already installed in this workspace.
+Open **http://localhost:5173**. Dependencies are already installed in this workspace. On a fresh clone, copy `.env.example` to ignored `.env.local` and configure server credentials in ignored `.env.secrets` to read the existing R2 snapshots; dataset files are not in Git.
 
 If you already have a Vite server running (for example on :4000), it can use the catalog through the configured `/api` proxy. Start the backend separately with `npm start`. `npm run dev:web` starts only Vite.
 
@@ -110,7 +114,7 @@ The configured rclone remote is **`bcnatlasCloudflareR2:`**, not `r2:`. The supe
 
 Reserve `bcnatlas.com` for the website and connect **`data.bcnatlas.com`** to `bcn-atlas-public` in R2 → Settings → Custom Domains. Set bucket CORS to allow GET/HEAD from `https://bcnatlas.com` and `https://www.bcnatlas.com` (paste the array in `docs/r2-cors.json` into the dashboard CORS editor). The custom domain is connected and serves verified objects. Initial CORS checks allowed all origins, but fresh responses subsequently omitted CORS headers. Direct browser access remains disabled pending a consistent policy for the website origins. Current object-storage credentials do not have bucket-domain/CORS management access. The default same-origin API data route works without either configuration.
 
-After CORS is verified, set `VITE_DATA_BASE_URL=https://data.bcnatlas.com/app/v1.2.0/data` in the production build environment (or ignored `.env.production.local`). Until then, all environments use the working same-origin API route. This is a public URL, not a credential. Keep `bcn-atlas-raw` private. For deployment, run the Python API on a Linux host/container with the pinned dependencies and forward `/api` from the website domain. The website itself has not been deployed by these data migration scripts.
+After CORS is verified, set `VITE_DATA_BASE_URL=https://data.bcnatlas.com/app/v1.2.0/data` in the production build environment (or ignored `.env.production.local`). Until then, all environments use the working same-origin API route. This is a public URL, not a credential. Keep `bcn-atlas-raw` private. The Cloudflare deployment uses a direct R2 binding at `/api/data` and a Python container for previews, so the optional public data hostname is unnecessary. The website is deployed separately through the linked deployment guide.
 
 ## Backend and operating limits
 
@@ -122,7 +126,7 @@ A small FastAPI service reads catalog-listed resources from R2 (or municipal sou
 - Parser process: 2 GiB address-space limit and 100 seconds of CPU time.
 - Unknown structures, missing geolocation, unsupported formats, excessive sizes and source failures produce explicit messages and source links. No fake or silently sampled map substitutes are produced.
 
-The API is intended for a trusted local or privately hosted installation. Before an untrusted public deployment, add access controls/rate limiting, a bounded disk-cache retention policy and reverse-proxy resource controls. In local mode the disk download cache grows as new resources are opened. R2 mode stores derived previews in R2, keyed by raw-object ETag, parser version, archive member and year. No public deployment is configured.
+The Cloudflare deployment adds per-IP preview rate limiting, one container, one parser at a time, and a short admission timeout with explicit busy responses. The container is reachable through the Worker binding. Local mode is intended for trusted development. In local mode the disk download cache grows as new resources are opened. R2 mode stores derived previews in R2, keyed by raw-object ETag, parser version, archive member and year. Deployment configuration is included; account activation, runtime secrets and live publication are performed through the deployment guide.
 
 ## Verify
 

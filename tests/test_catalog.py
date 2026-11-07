@@ -1,3 +1,4 @@
+from pathlib import Path
 import io
 import json
 import unittest
@@ -59,6 +60,7 @@ class ReaderTests(unittest.TestCase):
         with self.assertRaises(Exception):read_rows(b'<!DOCTYPE x [<!ENTITY attack SYSTEM "file:///etc/passwd">]><rows><row><name>&attack;</name></row></rows>','XML','test')
 
 class CatalogTests(unittest.TestCase):
+    @unittest.skipUnless((Path(__file__).resolve().parents[1]/"public/data/catalog.json").exists(), "Optional local dataset snapshot; excluded from Git")
     def test_complete_snapshot_and_sources(self):
         from pathlib import Path
         catalog=json.loads((Path(__file__).resolve().parents[1]/'public/data/catalog.json').read_text())

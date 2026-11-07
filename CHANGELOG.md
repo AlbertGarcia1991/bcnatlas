@@ -1,5 +1,13 @@
 # Changelog
 
+## Cloudflare deployment support — 2026-11-07
+
+- Add GitHub-connected Workers deployment with static assets, same-origin R2 reads and a Python/GDAL container.
+- Add preview rate limits, bounded parser admission, readiness checks and a container image excluding local secrets/data.
+- Add GitHub checks for clean-checkout tests, frontend/Worker builds and container startup.
+- Document paid-plan activation, runtime secrets, custom domains and end-to-end verification.
+
+
 ## 1.2.0 — 2026-11-07
 
 - Read catalog, curated snapshots and raw resources from Cloudflare R2 with server-only credentials.

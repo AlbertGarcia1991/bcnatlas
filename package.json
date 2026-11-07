@@ -16,21 +16,31 @@
     "catalog:refresh": "python3 scripts/sync_catalog.py",
     "r2:publish": ".venv/bin/python -m scripts.r2_assets",
     "r2:verify": ".venv/bin/python -m scripts.r2_verify",
-    "r2:mirror": ".venv/bin/python -m scripts.r2_mirror"
+    "r2:mirror": ".venv/bin/python -m scripts.r2_mirror",
+    "check:worker": "tsc -p tsconfig.worker.json",
+    "build:cloudflare": "node scripts/build-cloudflare.mjs",
+    "deploy:cloudflare": "wrangler deploy",
+    "check:deploy": "wrangler deploy --dry-run --containers-rollout=none --outdir .cache/worker-build"
   },
   "dependencies": {
+    "@cloudflare/containers": "0.3.7",
     "lucide-react": "^0.468.0",
     "maplibre-gl": "^6.16.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "5.20261107.1",
     "@playwright/test": "^1.56.1",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.1.0",
     "typescript": "~5.9.3",
     "vite": "^7.2.0",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.0",
+    "wrangler": "4.158.0"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

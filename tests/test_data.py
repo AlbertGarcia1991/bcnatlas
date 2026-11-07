@@ -16,6 +16,7 @@ class ImportTests(unittest.TestCase):
     def test_detects_schema_breakage(self):
         with self.assertRaises(ValueError):
             parse(b'latitude,longitude\n41.39,2.17\n')
+    @unittest.skipUnless((Path(__file__).resolve().parents[1]/"public/data/manifest.json").exists(), "Optional local dataset snapshot; excluded from Git")
     def test_bundled_snapshot_integrity(self):
         root = Path(__file__).resolve().parents[1] / 'public'
         manifest = json.loads((root / 'data/manifest.json').read_text())

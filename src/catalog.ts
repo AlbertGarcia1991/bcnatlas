@@ -18,7 +18,7 @@ export function preferredResource(resources: CatalogResource[]) {
 export async function loadResource(dataset: CatalogDataset, resource: CatalogResource, signal?: AbortSignal, member = '', year = ''): Promise<ResourceData> {
   const params = new URLSearchParams(); if (member) params.set('member', member); if (year) params.set('year', year);
   const response = await fetch(`/api/resource/${encodeURIComponent(dataset.id)}/${resource.id}?${params}`, { signal });
-  if (!response.headers.get('content-type')?.includes('application/json')) throw Error('The catalog service is not running. Start the app with npm run dev or npm start.');
+  if (!response.headers.get('content-type')?.includes('application/json')) throw Error('The preview service is temporarily unavailable. Please retry shortly.');
   const body = await response.json();
   if (!response.ok) throw Error(typeof body.detail === 'string' ? body.detail : 'The resource could not be loaded. Try its original download.');
   return body;
