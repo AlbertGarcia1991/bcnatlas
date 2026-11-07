@@ -31,4 +31,4 @@ The dashboard exposes every eligible pair through measure selectors, while its r
 
 ## Verification
 
-The release passed 36 frontend/edge unit tests, 60 Python tests, all 20 browser tests, the production build and the Worker deployment dry run. A separate browser check used the real evidence bundle to exercise linked charts, CSV export, descriptive district/undated cohorts, the source ledger and mobile layout. Statistical validation includes numerical invariants, known-signal/negative-control tests and 1,000 spatial null simulations; it is not external validation of each municipal measure.
+The release passed 37 frontend/edge unit tests, 60 Python tests, all 20 browser tests, the production build and the Worker deployment dry run. A separate browser check used the real evidence bundle to exercise linked charts, CSV export, descriptive district/undated cohorts, the source ledger and mobile layout. Statistical validation includes numerical invariants, known-signal/negative-control tests and 1,000 spatial null simulations; it is not external validation of each municipal measure.

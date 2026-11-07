@@ -1,3 +1,4 @@
+import {gzipSync,gunzipSync} from 'node:zlib';
 import { describe, it, expect, vi } from 'vitest';
 import { route, type RouterEnv } from './router';
 const path = '/api/resource/sanitat-farmacies/b89329ea-81ea-496c-9cd0-6758336e6c20';
@@ -61,4 +62,13 @@ describe('Cloudflare routing', () => {
 describe('Analytics evidence assets',()=>{
  it('streams approved analysis outputs without invoking the parser',async()=>{const s=setup();expect((await s.send('/api/analytics/manifest.json')).status).toBe(200);expect(s.get).toHaveBeenCalledWith('analytics/v1-20261107-a1/manifest.json');expect(s.backend).not.toHaveBeenCalled();});
  it('blocks arbitrary analysis paths and invalid partitions',async()=>{const s=setup();for(const path of ['/api/analytics/private.json','/api/analytics/pairs/2023-neighbourhood-32.json','/api/analytics/variables/secret.json'])expect((await s.send(path)).status).toBe(404);expect(s.get).not.toHaveBeenCalled();});
+});
+
+it('passes precompressed analytics bytes through with manual Worker encoding',async()=>{
+ const s=setup();const compressed=gzipSync('{"evidence":true}');let encoding:unknown;
+ s.get.mockImplementation(async()=>({body:new ReadableStream({start(c){c.enqueue(compressed);c.close();}}),httpEtag:'"gzip"',size:compressed.length,httpMetadata:{contentEncoding:'gzip'}}));
+ const OriginalResponse=Response;
+ class RecordedResponse extends OriginalResponse {constructor(body?:BodyInit|null,init?:ResponseInit&{encodeBody?:string}){super(body,init);encoding=init?.encodeBody;}}
+ vi.stubGlobal('Response',RecordedResponse);
+ try {const response=await s.send('/api/analytics/manifest.json?release=test');expect(encoding).toBe('manual');expect(response.headers.get('Content-Encoding')).toBe('gzip');expect(JSON.parse(gunzipSync(Buffer.from(await response.arrayBuffer())).toString())).toEqual({evidence:true});}finally{vi.unstubAllGlobals();}
 });
