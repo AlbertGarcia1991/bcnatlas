@@ -22,7 +22,10 @@
     "deploy:cloudflare": "wrangler deploy",
     "check:deploy": "wrangler deploy --dry-run --containers-rollout=none --outdir .cache/worker-build",
     "catalog:curate": ".venv/bin/python -m scripts.curate_catalog",
-    "spatial:build": ".venv/bin/python -m scripts.build_spatial_reference"
+    "spatial:build": ".venv/bin/python -m scripts.build_spatial_reference",
+    "analytics:extract": "OPENBLAS_NUM_THREADS=1 .venv/bin/python -m scripts.analytics.extract",
+    "analytics:build": "OPENBLAS_NUM_THREADS=4 .venv/bin/python -m scripts.analytics.analyse",
+    "analytics:publish": ".venv/bin/python -m scripts.analytics.publish"
   },
   "dependencies": {
     "@cloudflare/containers": "0.3.7",

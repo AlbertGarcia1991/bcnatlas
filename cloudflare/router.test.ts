@@ -57,3 +57,8 @@ describe('Cloudflare routing', () => {
     expect(await (await s.send('/')).text()).toBe('app'); expect(s.assets).toHaveBeenCalledOnce();
   });
 });
+
+describe('Analytics evidence assets',()=>{
+ it('streams approved analysis outputs without invoking the parser',async()=>{const s=setup();expect((await s.send('/api/analytics/manifest.json')).status).toBe(200);expect(s.get).toHaveBeenCalledWith('analytics/v1-20261107-a1/manifest.json');expect(s.backend).not.toHaveBeenCalled();});
+ it('blocks arbitrary analysis paths and invalid partitions',async()=>{const s=setup();for(const path of ['/api/analytics/private.json','/api/analytics/pairs/2023-neighbourhood-32.json','/api/analytics/variables/secret.json'])expect((await s.send(path)).status).toBe(404);expect(s.get).not.toHaveBeenCalled();});
+});

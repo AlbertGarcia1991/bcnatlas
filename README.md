@@ -58,6 +58,12 @@ District filters apply to curated layers and catalog overlays with recognized di
 
 Share URLs preserve curated settings and catalog resource/member/year/category selections, visibility, metric and rendering style. Reloading a shared catalog view downloads the referenced resources again through the cached API; source availability is required. Camera position is not shared. GeoJSON exports include the selected geometry, applicable district filter and provenance. Curated CSV exports remain separate.
 
+## Analytics
+
+Open the fourth navigation tab, **Analytics**, or `/?view=analytics`. It compares aligned area/year measurements across the audited map catalog, with linked charts, searchable measures, a correlation matrix, source provenance and downloadable results. Spatial tests and global multiple-testing correction distinguish exploratory patterns from supported associations; none of these observational comparisons establishes causation.
+
+See the [release findings](docs/analytics-results.md) and [analysis methods and refresh instructions](docs/analytics-methodology.md). Evidence is precomputed and versioned in R2, independently of frontend deployments. Changing the source catalog does not silently recalculate the analysis. Running the offline statistical pipeline or its Python tests additionally requires `pip install -r requirements-analytics.txt` inside `.venv`.
+
 ## Data integrity and provenance
 
 Catalog metadata is in `public/data/catalog.json`; curated provenance is in `public/data/manifest.json`. Each resource preview shows its resource ID, source SHA-256, actual download/cache date, original record count, selected record count, mapped count and rejected/missing geometry counts. GeoJSON exports embed publisher, dataset/resource URLs, license, timestamp, checksum and processing notes.

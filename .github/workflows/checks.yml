@@ -19,6 +19,7 @@ jobs:
           python-version: '3.12'
       - run: npm ci
       - run: npm run setup:api
+      - run: .venv/bin/pip install -r requirements-analytics.txt
       - run: npm test
       - run: npm run build:cloudflare
       - run: npm run check:deploy

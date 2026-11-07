@@ -1,3 +1,4 @@
+import analyticsRelease from '../config/analytics-release.json';
 export interface RouterEnv {
   ASSETS: Fetcher;
   PUBLIC_DATA: R2Bucket;
@@ -13,6 +14,19 @@ export async function route(request: Request, env: RouterEnv, backend: Backend):
   const url = new URL(request.url);
   if (url.pathname !== '/api' && !url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
   if (!['GET', 'HEAD'].includes(request.method)) return jsonError('Only GET and HEAD are supported.', 405, { Allow: 'GET, HEAD' });
+  if (url.pathname.startsWith('/api/analytics/')) {
+    const name=url.pathname.slice('/api/analytics/'.length);
+    if(!/^(?:(?:manifest|top-associations|diagnostics)\.json|(?:variables|variable-inventory)\.json\.gz|variables\/(?:\d{4}|undated)-(?:neighbourhood|district)\.json|pairs\/(?:\d{4}|undated)-(?:neighbourhood|district)-(?:[0-9]|[12][0-9]|3[01])\.json)$/.test(name))return jsonError('Unknown analytics asset.',404);
+    try {
+      const key=`${analyticsRelease.prefix}/${name}`;
+      const object=request.method==='HEAD'?await env.PUBLIC_DATA.head(key):await env.PUBLIC_DATA.get(key);
+      if(!object)return jsonError('This analysis is not available yet.',404);
+      const headers=new Headers({'Content-Type':name.endsWith('.gz')?'application/gzip':'application/json','Cache-Control':'public, max-age=300','ETag':object.httpEtag,'X-Content-Type-Options':'nosniff'});
+      if(object.httpMetadata?.contentEncoding)headers.set('Content-Encoding',object.httpMetadata.contentEncoding);
+      if(request.headers.get('If-None-Match')===object.httpEtag)return new Response(null,{status:304,headers});
+      return new Response('body' in object?object.body as ReadableStream:null,{headers});
+    } catch {return jsonError('Analytics storage is temporarily unavailable. Please retry.',503);}
+  }
   if (url.pathname === '/api/health') return Response.json({ status: 'ok', service: 'bcnatlas-edge', dataSource: 'r2' });
   if (url.pathname.startsWith('/api/data/')) {
     const name = url.pathname.slice('/api/data/'.length);

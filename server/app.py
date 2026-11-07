@@ -24,6 +24,24 @@ def ready():
     except (storage.StorageError, ValueError, KeyError):
         raise HTTPException(503, 'Data storage is not ready. Check the server configuration.')
 
+@app.get('/api/analytics/{name:path}')
+def analytics_asset(name: str):
+    import re
+    if not re.fullmatch(r'(?:manifest|top-associations|diagnostics)\.json|(?:variables|variable-inventory)\.json\.gz|variables/(?:\d{4}|undated)-(?:neighbourhood|district)\.json|pairs/(?:\d{4}|undated)-(?:neighbourhood|district)-(?:[0-9]|[12][0-9]|3[01])\.json',name):
+        raise HTTPException(404,'Unknown analytics asset.')
+    local=ROOT/'.cache/analytics/published'/name
+    headers={'Cache-Control':'public, max-age=300'}
+    try:
+        if local.exists():raw=local.read_bytes()
+        else:
+            release=json.loads((ROOT/'config/analytics-release.json').read_text())
+            raw,metadata=storage.object_bytes(storage.public_bucket(),release['prefix']+'/'+name,128*1024*1024)
+            if metadata.get('ContentEncoding'):headers['Content-Encoding']=metadata['ContentEncoding']
+        return Response(raw,media_type='application/gzip' if name.endswith('.gz') else 'application/json',headers=headers)
+    except storage.MissingObject:raise HTTPException(404,'This analysis is not available yet.')
+    except storage.StorageError:raise HTTPException(503,'Analytics storage is temporarily unavailable.')
+
+
 @app.get('/api/data/{name}')
 def data_asset(name: str):
     try:

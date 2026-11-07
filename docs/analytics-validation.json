@@ -1,0 +1,16 @@
+{
+  "seed": 43,
+  "pairs": 1000,
+  "areas": 73,
+  "randomizationsPerPair": 999,
+  "nominalAlpha": 0.05,
+  "rejections": 60,
+  "empiricalRate": 0.06,
+  "binomial95PercentInterval": [
+    0.04609503542248434,
+    0.07656049040393477
+  ],
+  "nominalRateWithinInterval": true,
+  "maximumInvariantError": 8.881784197001252e-16,
+  "scope": "Independent strongly spatial Gaussian fields on one simulated 73-area graph; implementation calibration only, not a guarantee of calibration for all municipal data or spatial processes."
+}

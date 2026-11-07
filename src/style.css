@@ -53,3 +53,5 @@ input[type="checkbox"],input[type="range"]{accent-color:var(--navy)}
 @media(max-width:760px){.shared-timeline{grid-template-columns:65px minmax(0,1fr);padding:12px;gap:8px}.shared-timeline .timeline-label{min-width:0}.shared-timeline .year{flex-basis:43px}.shared-timeline .year-selector{min-width:0}.timeline-coverage{font-size:9px}.coverage-key{font-size:8px;gap:8px}.legend{bottom:225px}}
 
 .edition-summary{font-size:9px;color:var(--muted);margin:7px 0 0;line-height:1.5;overflow-wrap:anywhere}
+
+@media(max-width:760px){.header{height:105px;flex-wrap:wrap;align-content:center;gap:5px 12px}.header .brand{order:0}.header-right{order:1;margin-left:auto}.header nav{order:2;flex-basis:100%;height:30px;margin:0;justify-content:space-between;gap:8px}.header nav>button,.header nav button:nth-child(2),.header nav button:nth-child(3),.header nav button:first-child{display:inline-flex!important;font-size:10px;height:30px}.header nav button:first-child:after{content:none}.header nav .nav-active:after,.header nav button:first-child.nav-active:after{display:block;content:'';position:absolute;bottom:0;left:0;width:100%;height:2px;background:#ffd23f}}

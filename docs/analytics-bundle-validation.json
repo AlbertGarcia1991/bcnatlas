@@ -1,0 +1,27 @@
+{
+  "analysisCodeSha256": {
+    "__init__.py": "0bac27118029127ddf35975462452d964ca78efbd0000c4c06a02841882ffdcf",
+    "verify.py": "946f349741af07b41e50e6d2350bf860f848e9e090636711ec2832c022f97221",
+    "extract.py": "276ef8f30f106ab9ac01396c3a91a2b77f9d2f0faccd5a54986c613331d11114",
+    "analyse.py": "2b8b4d373a95145a19bf41574ed0027eea35c549e4c27ad92714c269e7200272",
+    "statistics.py": "333bf7649a3f8171077f7aa17b08bdc822c17568d776e39521356abd361b623e",
+    "validate.py": "c19f4e286776c71af78fdbcc434f5474015af808ca90e67e6e35943b8be4026e",
+    "publish.py": "232baf8fb851fb318a380fbc02a3c6772eace44241bcbe297fd4bf8c1a5b4e73"
+  },
+  "geographicReferenceSha256": "05fcf389a27fcc00cb8b173246686088d23d576f0abbd2e572656a0aecdd8600",
+  "manifestSha256": "36d3ed1d2ded9090f0256e6b1e8e58fbc7c46c40580c73431d8e9f5ec1361f6c",
+  "allRowsValidated": {
+    "comparisons": 22717222,
+    "spatialTests": 5236664,
+    "supported": 0
+  },
+  "independentlyRecomputedPairs": 4902,
+  "checks": [
+    "partition/index integrity",
+    "same-period/geography membership",
+    "coverage and bounded effects",
+    "inference eligibility and probability bounds",
+    "full family totals",
+    "sampled Spearman/Pearson against SciPy"
+  ]
+}

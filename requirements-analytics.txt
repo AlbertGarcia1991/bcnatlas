@@ -1,0 +1,3 @@
+# Offline analysis only; production serves the versioned results as static assets.
+-r requirements.txt
+scipy==1.18.1
