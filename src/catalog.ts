@@ -31,3 +31,8 @@ export function downloadOverlay(overlay: CatalogOverlay, district: number) {
   const data = { ...filteredGeometry(overlay, district), attribution: { publisher: overlay.dataset.publisher, license: overlay.dataset.license, licenseUrl: overlay.dataset.licenseUrl, dataset: overlay.dataset.url, resource: overlay.resource.url, retrievedAt: overlay.data.retrievedAt, sourceSha256: overlay.data.sourceSha256, selectedYear: overlay.data.selectedYear, member: overlay.data.member, storageSource: overlay.data.storageSource, processing: overlay.data.notes, reference: overlay.data.referenceProvenance, filters: overlay.data.filters } };
   const url = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: 'application/geo+json' })); const link = document.createElement('a'); link.href=url; link.download=`${overlay.dataset.id}-${overlayPeriod(overlay).replaceAll(' / ', '-')}.geojson`; link.click(); setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
+
+export function defaultMetric(data: Pick<ResourceData, 'numericFields'>, preferred = ''): string {
+  const fields = data.numericFields;
+  return fields.find(f => f.name === preferred)?.name || fields.find(f => f.name !== '_records')?.name || fields[0]?.name || '';
+}

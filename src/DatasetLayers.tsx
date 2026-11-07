@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import { Search } from 'lucide-react';
 import { dataUrl } from './dataSource';
-import { loadResource, overlayColors, preferredResource, resourceKey, type Catalog, type CatalogDataset, type CatalogOverlay, type CatalogResource } from './catalog';
+import { defaultMetric, loadResource, overlayColors, preferredResource, resourceKey, type Catalog, type CatalogDataset, type CatalogOverlay, type CatalogResource } from './catalog';
 import { curatedDatasetIds, datasetTitles, datasetSeries, seriesResource, seriesYears } from './datasetChoices';
 import type { LayerId } from './data';
 import OverlayPanel from './OverlayPanel';
@@ -56,7 +56,7 @@ export default function DatasetLayers({ overlays, setOverlays, curated, curatedY
         if(!selection.year && data.years.length>0) data=await loadResource(d,resource,ac.signal,data.member || '',[...data.years].sort().at(-1),selection.filters);
         if(ac.signal.aborted)return;
         if(!data.mappedCount)throw Error('No matching map locations in this edition. Choose another year or breakdown.');
-        const overlay:CatalogOverlay = {key:resourceKey(resource,data),dataset:d,resource,data,color:overlayColors[datasets.findIndex(x=>x.id===d.id)%overlayColors.length],visible:true,metric:'',render:!data.locationMethods?.length&&data.geometryTypes.every(t=>t==='Point'||t==='MultiPoint')?'heatmap':'geometry'};
+        const overlay:CatalogOverlay = {key:resourceKey(resource,data),dataset:d,resource,data,color:overlayColors[datasets.findIndex(x=>x.id===d.id)%overlayColors.length],visible:true,metric:defaultMetric(data),render:!defaultMetric(data)&&!data.locationMethods?.length&&data.geometryTypes.every(t=>t==='Point'||t==='MultiPoint')?'heatmap':'geometry'};
         setOverlays(os=>[...os.filter(o=>o.dataset.id!==d.id),overlay]);
         if(curatedDatasetIds[d.id])disableCurated(curatedDatasetIds[d.id]);
       } catch(e) {if(!ac.signal.aborted)setErrors(es=>({...es,[d.id]:e instanceof Error?e.message:'Could not load layer.'}));}

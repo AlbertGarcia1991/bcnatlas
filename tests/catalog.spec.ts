@@ -56,7 +56,7 @@ test('line and polygon geometry with metric coloring',async({page})=>{
   const polygon=page.locator('.dataset-card').filter({has:page.getByRole('switch',{name:'Areas of the city of Barcelona with a highest population exposed to the impact of heat',exact:true})});
   await polygon.locator('.layer-details > summary').click();
   const attribute=polygon.locator('.overlay-metric select');
-  await attribute.selectOption({index:1});
+  await attribute.selectOption({index:0});
   await expect(polygon.locator('.overlay-legend')).toContainText('d_');
   await page.waitForTimeout(1800);
   await page.screenshot({path:'test-results/catalog-map.png',fullPage:true});

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { filteredGeometry, preferredResource, type CatalogOverlay, type CatalogResource } from './catalog';
+import { defaultMetric, filteredGeometry, preferredResource, type CatalogOverlay, type CatalogResource } from './catalog';
 
 describe('catalog spatial selections', () => {
   it('keeps a cross-district street in each intersected district', () => {
@@ -20,4 +20,12 @@ describe('catalog spatial selections', () => {
     ] as CatalogResource[];
     expect(preferredResource(resources).id).toBe('available');
   });
+});
+
+it('defaults to a measured attribute before record count, and preserves valid choices', () => {
+  const data = {numericFields:[{name:'_records',min:1,max:9,count:10},{name:'Income',min:100,max:900,count:10}]};
+  expect(defaultMetric(data)).toBe('Income');
+  expect(defaultMetric(data, '_records')).toBe('_records');
+  expect(defaultMetric(data, 'removed field')).toBe('Income');
+  expect(defaultMetric({numericFields:[]})).toBe('');
 });

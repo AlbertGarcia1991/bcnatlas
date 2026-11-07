@@ -11,6 +11,8 @@ test('dataset toggles load directly and annual editions replace one layer',async
   await expect(card.locator('.dataset-selectors select')).toHaveCount(1);
   await card.getByRole('switch').click();
   await expect(card.locator('.layer-details')).toContainText('1,068 features',{timeout:120000});
+  await expect(card.locator('.overlay-metric select option[value=""]')).toHaveCount(0);
+  await expect(card.locator('.overlay-metric select')).not.toHaveValue('');
   await expect(page.locator('.map-footer')).toContainText('1 catalog overlays');
   await card.locator('.dataset-selectors select').selectOption('2022');
   await expect(card.locator('[role=status]')).toHaveCount(0,{timeout:120000});

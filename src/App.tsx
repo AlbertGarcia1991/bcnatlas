@@ -5,7 +5,7 @@ import MapView from './Map';
 import CatalogExplorer from './CatalogExplorer';
 import DatasetLayers from './DatasetLayers';
 import { curatedDatasetIds } from './datasetChoices';
-import { loadResource, resourceKey, overlayColors, type Catalog, type CatalogOverlay } from './catalog';
+import { defaultMetric, loadResource, resourceKey, overlayColors, type Catalog, type CatalogOverlay } from './catalog';
 import { layers, districts, filterPoints, distanceMeters, format, readSettings, settingsQuery, type LayerId, type Manifest, type Point, type Settings } from './data';
 
 const cache = new Map<string, Point[]>();
@@ -51,7 +51,7 @@ export default function App() {
           const data=await loadResource(dataset,resource,ac.signal,typeof spec.member==='string'?spec.member:'',typeof spec.year==='string'?spec.year:'',spec.filters || {});
           if(!data.mappedCount)throw Error('A shared resource has no map geometry.');
           const key=resourceKey(resource,data);if(restored.some(o=>o.dataset.id===dataset.id))continue;
-          restored.push({key,dataset,resource,data,color:overlayColors[restored.length],visible:spec.visible!==false,metric:data.numericFields.some(f=>f.name===spec.metric)?spec.metric:'',render:spec.render==='heatmap'?'heatmap':'geometry'});
+          restored.push({key,dataset,resource,data,color:overlayColors[restored.length],visible:spec.visible!==false,metric:defaultMetric(data,spec.metric),render:spec.render==='heatmap'?'heatmap':'geometry'});
         }
         if(!ac.signal.aborted)setOverlays(restored);
       } catch(e) { if(!ac.signal.aborted)setRestoreError('Shared catalog layers could not be restored. Open the dataset catalog to load them again.'); }

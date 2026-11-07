@@ -2,7 +2,7 @@ import { dataUrl } from './dataSource';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Search, X, ArrowUpRight, Database, Layers, ChevronLeft, ChevronRight, Plus, Check, Download } from 'lucide-react';
 import { format } from './data';
-import { loadResource, plainText, preferredResource, resourceKey, overlayColors, type Catalog, type CatalogDataset, type CatalogResource, type ResourceData, type CatalogOverlay } from './catalog';
+import { defaultMetric, loadResource, plainText, preferredResource, resourceKey, overlayColors, type Catalog, type CatalogDataset, type CatalogResource, type ResourceData, type CatalogOverlay } from './catalog';
 
 export default function CatalogExplorer({ open, onClose, onAdd, overlays }: { open: boolean; onClose: () => void; onAdd: (o: CatalogOverlay) => void; overlays: CatalogOverlay[] }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -62,7 +62,7 @@ export default function CatalogExplorer({ open, onClose, onAdd, overlays }: { op
   const added=!!(resource && data && overlays.some(o=>o.key===resourceKey(resource,data)));
   function add() {
     if(!dataset || !resource || !data || !data.mappedCount || added || overlays.length>=6)return;
-    onAdd({ key:resourceKey(resource,data),dataset,resource,data,color:overlayColors[overlays.length%overlayColors.length],visible:true,metric:'',render:!data.locationMethods?.length && data.geometryTypes.every(t=>t==='Point'||t==='MultiPoint')?'heatmap':'geometry' });
+    onAdd({ key:resourceKey(resource,data),dataset,resource,data,color:overlayColors[overlays.length%overlayColors.length],visible:true,metric:defaultMetric(data),render:!defaultMetric(data)&&!data.locationMethods?.length && data.geometryTypes.every(t=>t==='Point'||t==='MultiPoint')?'heatmap':'geometry' });
     onClose();
   }
   const previewRows=(data?.preview || []).filter(row=>Object.values(row).some(v=>String(v??'').toLowerCase().includes(tableSearch.toLowerCase())));
