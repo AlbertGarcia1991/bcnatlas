@@ -84,3 +84,21 @@ key joins, service viewers or specialist readers. Unstructured place description
 cannot always be matched. Existing download, row, feature, memory and response
 limits still apply. The catalog distinguishes spatial candidates from proven
 successful previews; failed probes never authorize deletion.
+
+### Sidebar layer selection
+
+The map sidebar lists every spatial catalog dataset with at least one parser-supported
+resource. Each dataset has one toggle; turning it on loads its preferred available
+edition directly. Annual CSVs and equivalent format exports are grouped under one
+card. Year and breakdown selectors preserve distinct quarters, geography levels and
+subjects; they replace the active edition rather than stacking or summing snapshots.
+Files are grouped by normalized published names (year and format removed), so
+inconsistently named editions can remain separate breakdowns. Record-year and
+category controls are available when the parser discovers them inside a file.
+
+Resources load on demand, with up to six catalog datasets loaded at once. The
+sidebar reports missing uploads and parsing/location errors; catalog eligibility is
+not a guarantee that every edition has usable geometry. Unsupported service formats
+remain in the detailed source catalog. Failed edition changes preserve the previous
+visible layer, and cancelling a load removes the dataset. Shared links retain the
+actual resource, record year, filters and style.

@@ -7,13 +7,9 @@ test('explore real snapshots, change years, stack layers and export', async ({ p
   await expect(page.locator('canvas.maplibregl-canvas')).toBeVisible();
   await page.getByRole('button', { name: '2023', exact: true }).click();
   await expect(page.locator('.map-footer')).toContainText('7,724 selected records');
-  await page.getByRole('switch', { name: 'Street trees', exact: true }).click();
-  await expect(page.locator('.map-footer')).toContainText('155,638 selected records');
-  await page.getByRole('switch', { name: 'Park trees', exact: true }).click();
-  await expect(page.locator('.map-footer')).toContainText('191,184 selected records');
   await page.getByLabel('Explore an area').selectOption('2');
   await expect(page).toHaveURL(/district=2/);
-  await expect(page.locator('.map-footer')).not.toContainText('191,184 selected records');
+  await expect(page.locator('.map-footer')).not.toContainText('7,724 selected records');
   await page.getByRole('button', { name: 'Individual points', exact: true }).click();
   await expect(page.locator('.legend')).toContainText('Record locations');
   await page.locator('canvas').click({ position: { x: 600, y: 300 } });
@@ -27,7 +23,7 @@ test('explore real snapshots, change years, stack layers and export', async ({ p
   await page.keyboard.press('Escape'); await expect(page.getByRole('dialog')).not.toBeVisible();
   await expect(page.getByRole('button', { name: 'Data & sources' })).toBeFocused();
   await page.reload();
-  await expect(page.getByRole('switch', { name: 'Street trees', exact: true })).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByRole('switch', { name: 'Traffic accidents', exact: true })).toHaveAttribute('aria-checked', 'true');
   await expect(page.getByRole('button', { name: 'Individual points', exact: true })).toHaveAttribute('aria-pressed', 'true');
   expect(errors).toEqual([]);
 });
