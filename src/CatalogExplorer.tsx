@@ -1,8 +1,9 @@
+import { auditedCatalog } from './renderAudit';
 import { dataUrl } from './dataSource';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Search, X, ArrowUpRight, Database, Layers, ChevronLeft, ChevronRight, Plus, Check, Download } from 'lucide-react';
 import { format } from './data';
-import { defaultMetric, loadResource, plainText, preferredResource, resourceKey, overlayColors, type Catalog, type CatalogDataset, type CatalogResource, type ResourceData, type CatalogOverlay } from './catalog';
+import { canApplyFilter, defaultMetric, loadResource, plainText, preferredResource, resourceKey, overlayColors, type Catalog, type CatalogDataset, type CatalogResource, type ResourceData, type CatalogOverlay } from './catalog';
 
 export default function CatalogExplorer({ open, onClose, onAdd, overlays }: { open: boolean; onClose: () => void; onAdd: (o: CatalogOverlay) => void; overlays: CatalogOverlay[] }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -27,7 +28,7 @@ export default function CatalogExplorer({ open, onClose, onAdd, overlays }: { op
   useEffect(() => {
     if (!open || catalog) return;
     const ac = new AbortController(); setCatalogError('');
-    fetch(dataUrl('catalog.json'), { signal: ac.signal }).then(r => { if (!r.ok) throw Error(); return r.json(); }).then(setCatalog).catch(e => { if (e.name !== 'AbortError') setCatalogError('The catalog could not load. Close and reopen to retry.'); });
+    fetch(dataUrl('catalog.json'), { signal: ac.signal }).then(r => { if (!r.ok) throw Error(); return r.json(); }).then(c=>setCatalog(auditedCatalog(c))).catch(e => { if (e.name !== 'AbortError') setCatalogError('The catalog could not load. Close and reopen to retry.'); });
     return () => ac.abort();
   }, [open, catalog]);
   useEffect(() => {
@@ -62,7 +63,7 @@ export default function CatalogExplorer({ open, onClose, onAdd, overlays }: { op
   const added=!!(resource && data && overlays.some(o=>o.key===resourceKey(resource,data)));
   function add() {
     if(!dataset || !resource || !data || !data.mappedCount || added || overlays.length>=6)return;
-    onAdd({ key:resourceKey(resource,data),dataset,resource,data,color:overlayColors[overlays.length%overlayColors.length],visible:true,metric:defaultMetric(data),render:!defaultMetric(data)&&!data.locationMethods?.length && data.geometryTypes.every(t=>t==='Point'||t==='MultiPoint')?'heatmap':'geometry' });
+    onAdd({ key:resourceKey(resource,data),dataset,resource,data,color:overlayColors[overlays.length%overlayColors.length],visible:true,metric:defaultMetric(data),render:(!data.renderModes||data.renderModes.includes('heatmap'))&&!defaultMetric(data)&&!data.locationMethods?.length && data.geometryTypes.every(t=>t==='Point'||t==='MultiPoint')?'heatmap':'geometry' });
     onClose();
   }
   const previewRows=(data?.preview || []).filter(row=>Object.values(row).some(v=>String(v??'').toLowerCase().includes(tableSearch.toLowerCase())));
@@ -85,8 +86,8 @@ export default function CatalogExplorer({ open, onClose, onAdd, overlays }: { op
         {error&&<p className="catalog-message error" role="alert">{error}</p>}
         {data&&!pending&&<div className="resource-preview"><div className="preview-stats"><div><strong>{format(data.selectedRows)}</strong><span>selected records</span></div><div><strong>{format(data.mappedCount)}</strong><span>map features</span></div><div><strong>{data.geometryTypes.length?data.geometryTypes.join(', '):'Table'}</strong><span>detected geometry</span></div></div>
           {!!data.members.length&&<label className="resource-subselect">Archive / layer / worksheet<select aria-label="Resource member" value={data.member||''} onChange={e=>void preview(e.target.value)}>{data.members.map(m=><option key={m}>{m}</option>)}</select></label>}
-          {!!data.years.length&&<label className="resource-subselect">Year inside the records ({data.yearField})<select aria-label="Record year" value={data.selectedYear||''} onChange={e=>void preview(data.member||'',e.target.value,data.filters)}><option value="">All record years</option>{data.years.map(y=><option key={y}>{y}</option>)}</select></label>}
-          {!!data.filterOptions?.length&&<div className="record-filters">{data.filterOptions.map(option=><label className="resource-subselect" key={option.field}>{option.field}<select aria-label={`Filter ${option.field}`} value={data.filters?.[option.field]||''} onChange={e=>{const filters={...data.filters};if(e.target.value)filters[option.field]=e.target.value;else delete filters[option.field];void preview(data.member||'',data.selectedYear||'',filters);}}><option value="">All categories</option>{option.values.map(v=><option key={v}>{v}</option>)}</select></label>)}</div>}
+          {!!data.years.length&&<label className="resource-subselect">Year inside the records ({data.yearField})<select aria-label="Record year" value={data.selectedYear||''} onChange={e=>void preview(data.member||'',e.target.value,data.filters)}><option value="">Latest available year</option>{data.years.map(y=><option key={y}>{y}</option>)}</select></label>}
+          {!!data.filterOptions?.length&&<div className="record-filters">{data.filterOptions.map(option=><label className="resource-subselect" key={option.field}>{option.field}<select aria-label={`Filter ${option.field}`} value={data.filters?.[option.field]||''} onChange={e=>{const filters={...data.filters};if(e.target.value)filters[option.field]=e.target.value;else delete filters[option.field];void preview(data.member||'',data.selectedYear||'',filters);}}><option value="">All categories</option>{option.values.filter(Boolean).map(v=><option key={v} disabled={!canApplyFilter(data.filters||{},option.field,v)}>{v}</option>)}</select></label>)}</div>}
           <div className="resource-notes">{data.notes.map(note=><p key={note}>{note}</p>)}{overlays.length>=6&&<p>Six catalog overlays are active. Remove one before adding another.</p>}</div><button className="table-toggle" onClick={()=>setTable(!table)}>{table?'Hide':'Show'} table preview · first {data.preview.length} records</button>
           {table&&<div className="table-preview"><input aria-label="Search preview rows" placeholder="Search the first 100 rows…" value={tableSearch} onChange={e=>{setTableSearch(e.target.value);setTablePage(0);}}/><div className="table-scroll"><table><thead><tr>{data.fields.map(f=><th key={f}>{f}</th>)}</tr></thead><tbody>{previewRows.slice(tablePage*20,(tablePage+1)*20).map((r,i)=><tr key={i}>{data.fields.map(f=><td key={f}>{String(r[f]??'—')}</td>)}</tr>)}</tbody></table></div><div className="catalog-pagination"><button aria-label="Previous preview page" disabled={tablePage===0} onClick={()=>setTablePage(p=>p-1)}><ChevronLeft size={15}/></button><span>Preview page {tablePage+1} / {Math.max(1,Math.ceil(previewRows.length/20))} · {previewRows.length} preview rows</span><button aria-label="Next preview page" disabled={(tablePage+1)*20>=previewRows.length} onClick={()=>setTablePage(p=>p+1)}><ChevronRight size={15}/></button></div></div>}
           <details className="provenance-details"><summary>Resource provenance</summary><p>Retrieved {new Date(data.retrievedAt).toLocaleString('en-GB')}</p><p>Resource ID: {resource?.id}</p><p>Storage source: {data.storageSource || 'Municipal source'}</p><p>Source SHA-256: {data.sourceSha256}</p><p>{format(data.totalRows)} original records · {format(data.excluded)} invalid/outside geometry · {format(data.withoutGeometry)} without recognized geometry</p></details>

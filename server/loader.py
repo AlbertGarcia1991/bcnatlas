@@ -309,7 +309,7 @@ def prepare(raw, resource, member=None, year=None, filters=None):
             else: excluded+=1
         else: unmapped+=1
     if len(features)>MAX_FEATURES: raise ResourceError('More than 150,000 map features. Select a year or download the source for desktop GIS.')
-    if not selected: raise ResourceError('This resource has no records to preview.')
+    if not selected and not filters: raise ResourceError('This resource has no records to preview.')
     for group in joins.values():
         props = group['feature']['properties']; props['_records'] = group['rows']
         for key, (total_n, count_n) in group['numbers'].items(): props[key] = total_n / count_n
@@ -321,6 +321,7 @@ def prepare(raw, resource, member=None, year=None, filters=None):
     numericfields=[{'name':k,'min':v[0],'max':v[1],'count':v[2]} for k,v in numericstats.items() if v[2] >= max(1,len(features)*.5) and norm(k) not in LAT|LON|DISTRICT and k!=yearfield and v[0]!=v[1]]
     fc={'type':'FeatureCollection','features':features}
     result={'totalRows':total,'selectedRows':selected,'mappedCount':len(features),'excluded':excluded,'withoutGeometry':unmapped,'fields':fields,'preview':preview,'geometry':fc,'geometryTypes':sorted(geometrytypes),'numericFields':numericfields,'years':years,'yearField':yearfield,'selectedYear':year,'members':members,'member':chosen,'hasDistrict':bool(district),'sourceSha256':hashlib.sha256(raw).hexdigest(),'notes':[]}
+    if not selected: result['notes'].append('No records match these category filters. Clear a filter or choose another combination.')
     result.update(matchedRows=matched_rows, locationMethods=sorted(methods), filters=filters, filterOptions=filter_options, aggregated=any(g['rows'] > 1 for g in joins.values()))
     result['hasDistrict'] = any(f['properties'].get('_district') or f['properties'].get('_districts') for f in features)
     if joins:

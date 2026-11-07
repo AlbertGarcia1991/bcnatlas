@@ -5,7 +5,8 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 maplibregl.setWorkerUrl(workerUrl);
 import type { Map as GLMap, GeoJSONSource } from 'maplibre-gl';
 import { Crosshair, Minus, Plus, Maximize2 } from 'lucide-react';
-import { filteredGeometry, type CatalogOverlay } from './catalog';
+import { type CatalogOverlay } from './catalog';
+import { renderCatalogOverlay, forgetCatalogOverlay } from './mapOverlay';
 import { centers, layers, type LayerId, type Point, type Settings } from './data';
 
 export default function MapView({ points, settings, overlays, onInspect, onViewport }: { overlays: CatalogOverlay[]; points: Partial<Record<LayerId, Point[]>>; settings: Settings; onInspect: (p: [number, number]) => void; onViewport: (b: [number, number, number, number]) => void }) {
@@ -76,27 +77,11 @@ export default function MapView({ points, settings, overlays, onInspect, onViewp
   }, [settings, ready, points]);
   useEffect(() => {
     const m=map.current;if(!ready||!m)return;
-    // Remove obsolete catalog layers first, then their sources.
-    for(const layer of [...(m.getStyle().layers||[])].reverse())if(layer.id.startsWith('catalog-'))m.removeLayer(layer.id);
-    for(const id of Object.keys(m.getStyle().sources))if(id.startsWith('catalog-'))m.removeSource(id);
+    const active=new Set(overlays.map((_,i)=>`catalog-${i}`));
+    for(const layer of [...(m.getStyle().layers||[])].reverse())if(layer.id.startsWith('catalog-')&&!active.has(layer.id.replace(/-(fill|line|points|heat)$/, '')))m.removeLayer(layer.id);
+    for(const id of Object.keys(m.getStyle().sources))if(id.startsWith('catalog-')&&!active.has(id)){m.removeSource(id);forgetCatalogOverlay(m,id);}
     for(const [index,overlay] of overlays.entries()){
-      const id=`catalog-${index}`;
-      const metric=overlay.data.numericFields.find(f=>f.name===overlay.metric);
-      const collection=filteredGeometry(overlay,settings.district);
-      const data=metric?{...collection,features:collection.features.map(f=>{
-        let value=String(f.properties?.[metric.name]??'').trim().replaceAll(' ','');
-        if(value.includes(',')&&value.includes('.'))value=value.lastIndexOf(',')>value.lastIndexOf('.')?value.replaceAll('.','').replace(',','.'):value.replaceAll(',','');
-        else value=value.replace(',','.');
-        const number=value?Number(value):NaN;
-        return {...f,properties:{...f.properties,_value:Number.isFinite(number)?number:null}};
-      })}:collection;
-      m.addSource(id,{type:'geojson',data});
-      const color:maplibregl.ExpressionSpecification|string=metric?['case',['==',['get','_value'],null],'#a3aaa4',['interpolate',['linear'],['get','_value'],metric.min,'#f2eedb',metric.max,overlay.color]]:overlay.color;
-      const visibility=overlay.visible?'visible':'none';
-      m.addLayer({id:id+'-fill',type:'fill',source:id,filter:['==',['geometry-type'],'Polygon'],layout:{visibility},paint:{'fill-color':color,'fill-opacity':settings.opacity/100*.65,'fill-outline-color':overlay.color}});
-      m.addLayer({id:id+'-line',type:'line',source:id,filter:['==',['geometry-type'],'LineString'],layout:{visibility},paint:{'line-color':color,'line-width':3,'line-opacity':settings.opacity/100}});
-      m.addLayer({id:id+'-points',type:'circle',source:id,filter:['==',['geometry-type'],'Point'],layout:{visibility:overlay.visible&&overlay.render==='geometry'?'visible':'none'},paint:{'circle-color':color,'circle-radius':4,'circle-stroke-width':.6,'circle-stroke-color':'white','circle-opacity':settings.opacity/100}});
-      m.addLayer({id:id+'-heat',type:'heatmap',source:id,filter:['==',['geometry-type'],'Point'],layout:{visibility:overlay.visible&&overlay.render==='heatmap'?'visible':'none'},paint:{'heatmap-color':['interpolate',['linear'],['heatmap-density'],0,'rgba(0,0,0,0)',.2,'#e9eed3',.7,overlay.color,1,overlay.color],'heatmap-weight':.1,'heatmap-radius':settings.radius,'heatmap-intensity':settings.intensity,'heatmap-opacity':settings.opacity/100}});
+      renderCatalogOverlay(m, overlay, index, settings);
     }
   },[ready,overlays,settings.district,settings.opacity,settings.radius,settings.intensity]);
   useEffect(() => { if (ready) map.current?.flyTo({ center: centers[settings.district], zoom: settings.district ? 13.6 : 12.4, duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 700 }); }, [settings.district, ready]);

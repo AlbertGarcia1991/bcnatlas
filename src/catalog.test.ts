@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { defaultMetric, filteredGeometry, preferredResource, type CatalogOverlay, type CatalogResource } from './catalog';
+import { canApplyFilter, defaultMetric, filteredGeometry, preferredResource, type CatalogOverlay, type CatalogResource } from './catalog';
 
 describe('catalog spatial selections', () => {
   it('keeps a cross-district street in each intersected district', () => {
@@ -28,4 +28,13 @@ it('defaults to a measured attribute before record count, and preserves valid ch
   expect(defaultMetric(data, '_records')).toBe('_records');
   expect(defaultMetric(data, 'removed field')).toBe('Income');
   expect(defaultMetric({numericFields:[]})).toBe('');
+});
+
+it('keeps category selections within API limits and always permits clearing a filter',()=>{
+  const filters=Object.fromEntries(Array.from({length:12},(_,i)=>['field'+i,'value']));
+  expect(canApplyFilter(filters,'another','value')).toBe(false);
+  expect(canApplyFilter(filters,'field0','different')).toBe(true);
+  expect(canApplyFilter(filters,'field0','')).toBe(true);
+  expect(canApplyFilter({},'x'.repeat(201),'value')).toBe(false);
+  expect(canApplyFilter({},'field','x'.repeat(501))).toBe(false);
 });

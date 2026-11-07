@@ -1,0 +1,54 @@
+<!doctype html><html><head><style>html,body{margin:0}#map{width:400px;height:400px}</style></head><body><div id="map"></div><script type="module">
+import {Map,setWorkerUrl} from 'maplibre-gl';
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
+import {renderCatalogOverlay} from '/src/mapOverlay.ts';
+setWorkerUrl(workerUrl);
+const map=new Map({container:'map',fadeDuration:0,center:[2.14,41.40],zoom:9.5,style:{version:8,transition:{duration:0,delay:0},sources:{},layers:[{id:'background',type:'background',paint:{'background-color':'#ffffff'}}]}});
+let errors=[];map.on('error',e=>errors.push(String(e.error?.message||e.error)));
+await new Promise(r=>map.on('load',r));
+window.auditReady=true;
+window.auditLayer=async function(data){
+ const checks=[];
+ let firstCoordinate=data.geometry.features.find(f=>f.geometry?.coordinates)?.geometry.coordinates;
+ while(Array.isArray(firstCoordinate?.[0]))firstCoordinate=firstCoordinate[0];
+ const visibleCount=state=>{
+  if(state.render==='heatmap')return map.querySourceFeatures('catalog-0').length;
+  const options={layers:['catalog-0-fill','catalog-0-line','catalog-0-points']};
+  if(firstCoordinate?.length>=2){
+   const p=map.project(firstCoordinate.slice(0,2));
+   if(p.x>=0&&p.y>=0&&p.x<=400&&p.y<=400){
+    const nearby=map.queryRenderedFeatures([[p.x-4,p.y-4],[p.x+4,p.y+4]],options).length;
+    if(nearby)return nearby;
+   }
+  }
+  return map.queryRenderedFeatures(options).length;
+ };
+ const metrics=['',...data.numericFields.map(f=>f.name)];
+ const remove=()=>{for(const l of [...map.getStyle().layers].reverse())if(l.id.startsWith('catalog-'))map.removeLayer(l.id);if(map.getSource('catalog-0'))map.removeSource('catalog-0');};
+ const states=metrics.map(metric=>({metric,render:'geometry'}));
+ if(data.geometryTypes.every(t=>t==='Point'||t==='MultiPoint'))states.push({metric:'',render:'heatmap'});
+ remove();
+ for(const state of states){
+  errors=[];map.jumpTo({center:[2.14,41.40],zoom:9.5});
+  try{
+   const overlay={key:'audit',data,color:'#327ca3',visible:true,...state};
+   renderCatalogOverlay(map,overlay,0,{district:0,opacity:75,radius:22,intensity:1});
+   await new Promise((resolve,reject)=>{const timer=setTimeout(()=>{map.off('idle',done);reject(Error('Map did not finish rendering within 30 seconds'));},30000);function done(){clearTimeout(timer);resolve();}map.once('idle',done);map.triggerRepaint();});
+   let count=visibleCount(state);
+   if(!count){
+    let coordinate=data.geometry.features.find(f=>f.geometry?.coordinates)?.geometry.coordinates;
+    while(Array.isArray(coordinate?.[0]))coordinate=coordinate[0];
+    if(coordinate?.length>=2){
+     map.jumpTo({center:coordinate.slice(0,2),zoom:16});
+     await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Zoomed map did not finish rendering')),30000);map.once('idle',()=>{clearTimeout(timer);resolve();});map.triggerRepaint();});
+     count=visibleCount(state);
+    }
+   }
+   if(!count)throw Error('No visible features at city scale or zoomed to source geometry');
+   if(errors.length)throw Error(errors.join('; '));
+   checks.push({...state,status:'passed',visibleFeatures:count,zoom:map.getZoom()});
+  }catch(e){checks.push({...state,status:'failed',error:String(e.message||e)});if(!state.metric&&state.render==='geometry')break;}
+ }
+ remove();return checks;
+};
+</script></body></html>

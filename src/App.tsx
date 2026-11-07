@@ -1,3 +1,4 @@
+import { auditedCatalog, auditedCuratedLayers } from './renderAudit';
 import { dataUrl } from './dataSource';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Layers, ArrowUpRight, Share2, Check, SlidersHorizontal, X, MapPin, Info, ChevronLeft, ChevronRight, Download, RotateCcw, MousePointer2 } from 'lucide-react';
@@ -9,13 +10,17 @@ import { defaultMetric, loadResource, resourceKey, overlayColors, type Catalog, 
 import { layers, districts, filterPoints, distanceMeters, format, readSettings, settingsQuery, type LayerId, type Manifest, type Point, type Settings } from './data';
 
 const cache = new Map<string, Point[]>();
+function readAuditedSettings(search:string) {
+  const settings=readSettings(search);
+  return {...settings,enabled:auditedCuratedLayers(settings.enabled,curatedDatasetIds)};
+}
 export default function App() {
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [overlays, setOverlays] = useState<CatalogOverlay[]>([]);
   const initialCatalog = useRef(new URLSearchParams(location.search).get('catalog'));
   const [restoring, setRestoring] = useState(!!initialCatalog.current);
   const [restoreError, setRestoreError] = useState('');
-  const [settings, setSettings] = useState(() => readSettings(location.search));
+  const [settings, setSettings] = useState(() => readAuditedSettings(location.search));
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [loaded, setLoaded] = useState<{ year: number; data: Partial<Record<LayerId, Point[]>> }>({ year: 0, data: {} });
   const [loading, setLoading] = useState(false);
@@ -44,14 +49,14 @@ export default function App() {
         const specs = JSON.parse(initialCatalog.current!);
         if (!Array.isArray(specs) || specs.length > 6) throw Error('Invalid shared catalog selection.');
         const response=await fetch(dataUrl('catalog.json'),{signal:ac.signal});if(!response.ok)throw Error('Catalog unavailable');
-        const catalog:Catalog=await response.json();const restored:CatalogOverlay[]=[];
+        const catalog:Catalog=auditedCatalog(await response.json());const restored:CatalogOverlay[]=[];
         for(const spec of specs) {
           const dataset=catalog.datasets.find(d=>d.resources.some(r=>r.id===spec.resource));const resource=dataset?.resources.find(r=>r.id===spec.resource);
           if(!dataset||!resource)throw Error('A shared resource is no longer in the catalog snapshot.');
           const data=await loadResource(dataset,resource,ac.signal,typeof spec.member==='string'?spec.member:'',typeof spec.year==='string'?spec.year:'',spec.filters || {});
-          if(!data.mappedCount)throw Error('A shared resource has no map geometry.');
+          if(!data.mappedCount && !(data.selectedRows===0 && Object.keys(data.filters||{}).length))throw Error('A shared resource has no map geometry.');
           const key=resourceKey(resource,data);if(restored.some(o=>o.dataset.id===dataset.id))continue;
-          restored.push({key,dataset,resource,data,color:overlayColors[restored.length],visible:spec.visible!==false,metric:defaultMetric(data,spec.metric),render:spec.render==='heatmap'?'heatmap':'geometry'});
+          restored.push({key,dataset,resource,data,color:overlayColors[restored.length],visible:spec.visible!==false,metric:defaultMetric(data,spec.metric),render:spec.render==='heatmap'&&(!data.renderModes||data.renderModes.includes('heatmap'))?'heatmap':'geometry'});
         }
         if(!ac.signal.aborted)setOverlays(restored);
       } catch(e) { if(!ac.signal.aborted)setRestoreError('Shared catalog layers could not be restored. Open the dataset catalog to load them again.'); }
@@ -59,7 +64,7 @@ export default function App() {
     }
     void restore();return()=>ac.abort();
   }, []);
-  useEffect(() => { const restore = () => setSettings(readSettings(location.search)); window.addEventListener('popstate', restore); return () => window.removeEventListener('popstate', restore); }, []);
+  useEffect(() => { const restore = () => setSettings(readAuditedSettings(location.search)); window.addEventListener('popstate', restore); return () => window.removeEventListener('popstate', restore); }, []);
   const enabledKey = settings.enabled.join(',');
   useEffect(() => {
     if (!manifest) return;

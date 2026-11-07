@@ -54,3 +54,29 @@ test('compact layer tree can be searched and used on mobile',async({page})=>{
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:'/tmp/bcnatlas-layer-mobile.png',fullPage:true});
 });
+
+test('an empty category selection stays enabled with a neutral message',async({page})=>{
+  test.setTimeout(180000);
+  await page.goto('/?layers=');
+  await page.getByRole('textbox',{name:'Search map layers'}).fill('sanitat-farmacies');
+  const card=page.locator('.dataset-card');
+  const response=page.waitForResponse(r=>r.url().includes('/api/resource/')&&r.ok());
+  await card.getByRole('switch').click();
+  const source=await (await response).json();
+  await expect(card.locator('.layer-details')).toContainText('1,135 features',{timeout:120000});
+  const option=source.filterOptions.find((f:{values:string[]})=>f.values.length>1);
+  expect(option).toBeTruthy();
+  await page.route('**/api/resource/**',async route=>{
+    const filters=JSON.parse(new URL(route.request().url()).searchParams.get('filters')||'{}');
+    await route.fulfill({json:{...source,filters,selectedRows:0,mappedCount:0,preview:[],numericFields:[],geometryTypes:[],geometry:{type:'FeatureCollection',features:[]},notes:['No records match these category filters.']}});
+  });
+  const title=await card.getByRole('switch').getAttribute('aria-label');
+  await card.getByLabel(`${option.field} for ${title}`,{exact:true}).selectOption(option.values[0]);
+  await expect(card.getByRole('status')).toContainText('No records match these filters');
+  await expect(card.getByRole('alert')).toHaveCount(0);
+  await expect(card.getByRole('switch')).toHaveAttribute('aria-checked','true');
+  await page.reload();
+  await page.getByRole('textbox',{name:'Search map layers'}).fill('sanitat-farmacies');
+  await expect(card.getByRole('status')).toContainText('No records match these filters');
+  await expect(card.getByRole('switch')).toHaveAttribute('aria-checked','true');
+});

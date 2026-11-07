@@ -87,8 +87,8 @@ successful previews; failed probes never authorize deletion.
 
 ### Sidebar layer selection
 
-The map sidebar lists every spatial catalog dataset with at least one parser-supported
-resource. Each dataset has one toggle; turning it on loads its preferred available
+The map sidebar lists spatial catalog datasets with at least one audited, verified
+resource edition. Each dataset has one toggle; turning it on loads its preferred available
 edition directly. Annual CSVs and equivalent format exports are grouped under one
 card. Year and breakdown selectors preserve distinct quarters, geography levels and
 subjects; they replace the active edition rather than stacking or summing snapshots.
@@ -97,8 +97,40 @@ inconsistently named editions can remain separate breakdowns. Record-year and
 category controls are available when the parser discovers them inside a file.
 
 Resources load on demand, with up to six catalog datasets loaded at once. The
-sidebar reports missing uploads and parsing/location errors; catalog eligibility is
-not a guarantee that every edition has usable geometry. Unsupported service formats
-remain in the detailed source catalog. Failed edition changes preserve the previous
+sidebar reports missing uploads and unexpected parsing/location errors. Unsupported
+formats and failed editions are excluded from both map selectors and documented in
+the rendering review. Failed edition changes preserve the previous
 visible layer, and cancelling a load removes the dataset. Shared links retain the
 actual resource, record year, filters and style.
+
+### Verified rendering allowlist
+
+`config/map-render-audit.json` controls which datasets, resource editions, archive
+members, record years, colour attributes and rendering modes are offered. An entry
+must pass production parsing and browser rendering before it is listed. Datasets
+with no verified editions are excluded; a working edition is not removed just
+because another year fails. Original objects remain in R2.
+
+The parser audit is resumable (`python -m scripts.audit_map_catalog`). The browser
+audit (`node scripts/audit_map_render.mjs`) runs against Vite on port 5174 and imports
+the same `renderCatalogOverlay` function used by the application. Optional shard
+arguments, for example `0 4` through `3 4`, split the resource IDs across processes.
+The report generator (`python -m scripts.publish_map_audit`) refuses to publish an
+allowlist while parser or browser evidence is unfinished. Source checksums also
+prevent changed data from silently inheriting an old verification result.
+Run `python -m scripts.audit_map_service` for near-limit editions and early evidence
+without timing data. It exercises the complete production reader, including its
+CPU/memory limits and R2 cache operations; those checks are required before publication.
+
+Review exclusions in [map-rendering-review.md](map-rendering-review.md). After
+repairing a parser or source, remove its cached audit evidence, rerun the audit,
+and regenerate both the allowlist and report before reinstating it. A map render
+check establishes technical usability, not the statistical interpretation or
+accuracy of the original dataset.
+
+Category-filter spaces with at most 64 legal combinations are checked exhaustively.
+Larger spaces retain passing editions after representative tests, with their
+incomplete coverage stated in [filter-audit-coverage.md](filter-audit-coverage.md).
+Run `python -m scripts.audit_map_filters` and
+`node scripts/audit_map_render.mjs 0 1 --filters` before publishing the allowlist.
+Empty selections are valid no-result states, not failures.

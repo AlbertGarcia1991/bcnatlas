@@ -1,7 +1,8 @@
+import { auditedCatalog } from './renderAudit';
 import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import { Search } from 'lucide-react';
 import { dataUrl } from './dataSource';
-import { defaultMetric, loadResource, overlayColors, preferredResource, resourceKey, type Catalog, type CatalogDataset, type CatalogOverlay, type CatalogResource } from './catalog';
+import { canApplyFilter, defaultMetric, loadResource, overlayColors, preferredResource, resourceKey, type Catalog, type CatalogDataset, type CatalogOverlay, type CatalogResource } from './catalog';
 import { curatedDatasetIds, datasetTitles, datasetSeries, seriesResource, seriesYears } from './datasetChoices';
 import type { LayerId } from './data';
 import OverlayPanel from './OverlayPanel';
@@ -28,7 +29,8 @@ export default function DatasetLayers({ overlays, setOverlays, curated, curatedY
     ]).then(([c,status]) => {
       if(ac.signal.aborted)return;
       const missing = new Set<string>(status?.missing?.map((m:{key:string})=>m.key.split('/')[2]) || []);
-      setCatalog({...c,datasets:c.datasets.map(d=>({...d,resources:d.resources.map(r=>({...r,available:!missing.has(r.id)}))}))});
+      const approved=auditedCatalog(c);
+      setCatalog({...approved,datasets:approved.datasets.map(d=>({...d,resources:d.resources.map(r=>({...r,available:!missing.has(r.id)}))}))});
     }).catch(e=>{if(!ac.signal.aborted)setError(e.message)});
     return ()=>ac.abort();
   }, [retry]);
@@ -53,10 +55,10 @@ export default function DatasetLayers({ overlays, setOverlays, curated, curatedY
       if(ac.signal.aborted)return;
       try {
         let data = await loadResource(d,resource,ac.signal,selection.member,selection.year,selection.filters);
-        if(!selection.year && data.years.length>0) data=await loadResource(d,resource,ac.signal,data.member || '',[...data.years].sort().at(-1),selection.filters);
+        if(!selection.year && !data.selectedYear && data.years.length>0) data=await loadResource(d,resource,ac.signal,data.member || '',[...data.years].sort().at(-1),selection.filters);
         if(ac.signal.aborted)return;
-        if(!data.mappedCount)throw Error('No matching map locations in this edition. Choose another year or breakdown.');
-        const overlay:CatalogOverlay = {key:resourceKey(resource,data),dataset:d,resource,data,color:overlayColors[datasets.findIndex(x=>x.id===d.id)%overlayColors.length],visible:true,metric:defaultMetric(data),render:!defaultMetric(data)&&!data.locationMethods?.length&&data.geometryTypes.every(t=>t==='Point'||t==='MultiPoint')?'heatmap':'geometry'};
+        if(!data.mappedCount && !(data.selectedRows===0 && Object.keys(selection.filters||{}).length))throw Error('No matching map locations in this edition. Choose another year or breakdown.');
+        const overlay:CatalogOverlay = {key:resourceKey(resource,data),dataset:d,resource,data,color:overlayColors[datasets.findIndex(x=>x.id===d.id)%overlayColors.length],visible:true,metric:defaultMetric(data),render:(!data.renderModes||data.renderModes.includes('heatmap'))&&!defaultMetric(data)&&!data.locationMethods?.length&&data.geometryTypes.every(t=>t==='Point'||t==='MultiPoint')?'heatmap':'geometry'};
         setOverlays(os=>[...os.filter(o=>o.dataset.id!==d.id),overlay]);
         if(curatedDatasetIds[d.id])disableCurated(curatedDatasetIds[d.id]);
       } catch(e) {if(!ac.signal.aborted)setErrors(es=>({...es,[d.id]:e instanceof Error?e.message:'Could not load layer.'}));}
@@ -93,9 +95,10 @@ export default function DatasetLayers({ overlays, setOverlays, curated, curatedY
         {errors[d.id]&&<p className="error" role="alert">{errors[d.id]} <button onClick={()=>start(d,resource,selection||{resource:resource.id})}>Retry</button></p>}
         {resource.available===false&&<p>This edition is awaiting archive upload.</p>}
         {overlay&&<>
+          {overlay.data.selectedRows===0&&<p role="status">No records match these filters. Clear a filter or choose another combination.</p>}
           {!!overlay.data.members.length&&<label className="resource-subselect">Layer / worksheet<select aria-label={`Worksheet for ${title}`} value={overlay.data.member||''} onChange={e=>start(d,overlay.resource,{resource:overlay.resource.id,member:e.target.value})}>{overlay.data.members.map(m=><option key={m}>{m}</option>)}</select></label>}
           {overlay.data.years.length>1&&<label className="resource-subselect">Record year<select aria-label={`Record year for ${title}`} value={overlay.data.selectedYear||''} onChange={e=>start(d,overlay.resource,{resource:overlay.resource.id,member:overlay.data.member||'',year:e.target.value,filters:overlay.data.filters})}>{overlay.data.years.map(y=><option key={y}>{y}</option>)}</select></label>}
-          {overlay.data.filterOptions?.map(f=><label className="resource-subselect" key={f.field}>{f.field}<select aria-label={`${f.field} for ${title}`} value={overlay.data.filters?.[f.field]||''} onChange={e=>{const filters={...overlay.data.filters};if(e.target.value)filters[f.field]=e.target.value;else delete filters[f.field];start(d,overlay.resource,{resource:overlay.resource.id,member:overlay.data.member||'',year:overlay.data.selectedYear||'',filters});}}><option value="">All categories</option>{f.values.map(v=><option key={v}>{v}</option>)}</select></label>)}
+          {overlay.data.filterOptions?.map(f=><label className="resource-subselect" key={f.field}>{f.field}<select aria-label={`${f.field} for ${title}`} value={overlay.data.filters?.[f.field]||''} onChange={e=>{const filters={...overlay.data.filters};if(e.target.value)filters[f.field]=e.target.value;else delete filters[f.field];start(d,overlay.resource,{resource:overlay.resource.id,member:overlay.data.member||'',year:overlay.data.selectedYear||'',filters});}}><option value="">All categories</option>{f.values.filter(Boolean).map(v=><option key={v} disabled={!canApplyFilter(overlay.data.filters||{},f.field,v)}>{v}</option>)}</select></label>)}
           <details className="layer-details"><summary>Style, source & export · {overlay.data.mappedCount.toLocaleString()} features</summary><OverlayPanel overlays={[overlay]} district={district} onChange={next=>setOverlays(os=>os.flatMap(o=>o.dataset.id===d.id?next:o))}/></details>
         </>}
       </article>;

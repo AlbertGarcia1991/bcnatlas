@@ -63,12 +63,10 @@ test('line and polygon geometry with metric coloring',async({page})=>{
   expect(errors).toEqual([]);
 });
 
-test('unsupported and failed resources remain explicitly linked to source',async({page})=>{
+test('unsupported resources are hidden and unexpected preview failures are explicit',async({page})=>{
   await page.goto('/');await page.getByRole('button',{name:'Dataset catalog',exact:true}).click();
   await page.getByRole('textbox',{name:'Search all datasets'}).fill('mapa-acustic-wms');
-  await page.locator('.catalog-item').click();
-  await expect(page.getByRole('button',{name:'Preview resource',exact:true})).toBeDisabled();
-  await expect(page.getByRole('link',{name:'Original download'})).toHaveAttribute('href',/^https:\/\/opendata-ajuntament.barcelona.cat/);
+  await expect(page.locator('.catalog-item')).toHaveCount(0);
   await page.getByRole('textbox',{name:'Search all datasets'}).fill('sanitat-farmacies');
   await page.locator('.catalog-item').click();
   await page.route('**/api/resource/**',route=>route.fulfill({status:422,contentType:'application/json',body:JSON.stringify({detail:'Resource exceeds the preview limit. Download the original.'})}));
