@@ -3,8 +3,8 @@ export type Point = [number, number, number];
 export type Snapshot = { file: string; count: number; excluded: number; sourceRows: number; resourceId: string; resourceName: string; url: string; period: string; sourceModified: string; sha256: string };
 export type Manifest = { retrievedAt: string; years: number[]; datasets: Record<LayerId, { title: string; publisher: string; license: string; licenseUrl: string; url: string; years: Record<string, Snapshot> }> };
 export const layers: { id: LayerId; title: string; description: string; color: string; colors: [string, string, string]; category: string }[] = [
-  { id: 'accidents', title: 'Traffic accidents', description: 'Incidents recorded by the local police', color: '#d57643', colors: ['#f9dfa2', '#ec9654', '#bb3d32'], category: 'MOBILITY' },
-  { id: 'street-trees', title: 'Street trees', description: 'The trees along our everyday routes', color: '#389886', colors: ['#d6efb2', '#51b3a0', '#12695a'], category: 'URBAN NATURE' },
+  { id: 'accidents', title: 'Traffic accidents', description: 'Incidents recorded by the local police', color: '#b8323e', colors: ['#fff0b5', '#ffd23f', '#b8323e'], category: 'MOBILITY' },
+  { id: 'street-trees', title: 'Street trees', description: 'The trees along our everyday routes', color: '#197bea', colors: ['#dcefff', '#19a0e5', '#0b3062'], category: 'URBAN NATURE' },
   { id: 'park-trees', title: 'Park trees', description: 'Tree inventories in the city’s parks', color: '#8a74bf', colors: ['#e0d4f2', '#a88cd4', '#66439c'], category: 'URBAN NATURE' },
 ];
 export const districts = ['All Barcelona', 'Ciutat Vella', 'Eixample', 'Sants-Montjuïc', 'Les Corts', 'Sarrià-Sant Gervasi', 'Gràcia', 'Horta-Guinardó', 'Nou Barris', 'Sant Andreu', 'Sant Martí'];
