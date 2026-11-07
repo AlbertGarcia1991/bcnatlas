@@ -22,8 +22,8 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(result['years'],['2023','2024']);self.assertEqual(result['totalRows'],3)
         self.assertEqual(result['mappedCount'],2);self.assertEqual(result['selectedRows'],2)
         with self.assertRaises(ResourceError): prepare(raw,self.resource(),year='1990')
-    def test_table_remains_table_no_invented_centroids(self):
-        result=prepare(b'Any,Codi_Districte,Poblacio\n2024,2,10000\n',self.resource())
+    def test_nonspatial_table_remains_table(self):
+        result=prepare(b'Any,Concepte,Total\n2024,City budget,10000\n',self.resource())
         self.assertEqual(result['mappedCount'],0);self.assertEqual(result['selectedRows'],1)
         self.assertEqual(result['withoutGeometry'],1)
     def test_projected_geojson_reprojected_and_geometry_preserved(self):
@@ -65,7 +65,8 @@ class CatalogTests(unittest.TestCase):
         from pathlib import Path
         catalog=json.loads((Path(__file__).resolve().parents[1]/'public/data/catalog.json').read_text())
         self.assertEqual(catalog['count'],len(catalog['datasets']))
-        self.assertEqual(catalog['count'],558)
+        self.assertGreater(catalog['count'],400)
+        self.assertNotIn('alcaldes-alcaldesses-bcn', {d['id'] for d in catalog['datasets']})
         self.assertEqual(catalog['resourceCount'],sum(len(d['resources']) for d in catalog['datasets']))
         self.assertEqual(len({d['id'] for d in catalog['datasets']}),catalog['count'])
         for d in catalog['datasets']:

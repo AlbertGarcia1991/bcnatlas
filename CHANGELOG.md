@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0 — 2026-11-07
+
+- Map district, neighbourhood, census-section and statistical-area tables using official boundaries; resolve streets and exact postal addresses using municipal references.
+- Add postcode address coverage and traffic-count/weather-station joins, record-category filters, explicit mean aggregation and reference provenance in exports.
+- Exclude reviewed non-spatial datasets from storage and transfer plans; use field evidence rather than the geographic flag to select map candidates.
+- Prefer mirrored resources, version preview caches by filters/reference release, and link the project on GitHub from the lower-left sidebar.
+
 ## Cloudflare deployment support — 2026-11-07
 
 - Add GitHub-connected Workers deployment with static assets, same-origin R2 reads and a Python/GDAL container.

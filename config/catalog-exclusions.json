@@ -1,0 +1,666 @@
+{
+  "alcaldes-alcaldesses-bcn": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "45284656-53c8-4553-b585-94c93327c1c1",
+    "fields": [
+      "Tractament_Protocol",
+      "Nom_Cognoms",
+      "Data_Inici",
+      "Data_Final"
+    ]
+  },
+  "accions-formatives-adrecades-al-personal": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "eec266c3-849f-4467-9514-68a91953fb51",
+    "fields": [
+      "Cataleg",
+      "Ambit_Actuacio",
+      "Nom_Accio_Formativa",
+      "Nombre_Places",
+      "Durada_Hora",
+      "Edicions_Previstes",
+      "Objectius",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  "acollida-animals": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "c441ce0b-fa5d-43c4-9c34-6d784a25b89a",
+    "fields": [
+      "Concepte",
+      "Gener",
+      "Febrer",
+      "Març",
+      "Abril",
+      "Maig",
+      "Juny",
+      "Juliol",
+      "Agost",
+      "Setembre",
+      "Octubre",
+      "Novembre",
+      "Desembre"
+    ]
+  },
+  "campanyes-publicitat-institucional": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "1591cc77-a8fb-4e66-83f9-2d858f786407",
+    "fields": [
+      "INFORME TRANSPARÈNCIA - INVERSIÓ PUBLICITÀRIA PER CAMPANYES",
+      "",
+      "",
+      "",
+      "Data actualització: 31 març 2025",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  "carrecs-electes-comissionats-i-gerents": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "77c47da6-9e4f-46de-8c37-d0bff307a725",
+    "fields": [
+      "partit_politic",
+      "nom",
+      "cognom_1",
+      "cognom_2",
+      "genere",
+      "grau_ocupacio",
+      "plena_dedicacio",
+      "remuneracio",
+      "observacio_remuneracio_ca",
+      "observacio_remuneracio_es",
+      "observacio_remuneracio_en",
+      "president_partit",
+      "descripcio_carrec_ca",
+      "descripcio_carrec_es",
+      "descripcio_carrec_en",
+      "posicio_principal",
+      "dependencia_ca",
+      "dependencia_es",
+      "dependencia_en",
+      "descripcio_uo_ampliada",
+      "ordre_caixa",
+      "foto",
+      "cv_ca",
+      "cv_es",
+      "agenda_ca",
+      "agenda_es",
+      "declaracio_activitats_ca",
+      "declaracio_activitats_es",
+      "declaracio_bens_ca",
+      "declaracio_bens_es"
+    ]
+  },
+  "cataleg-opendata": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "35f4fffd-95ae-40b6-8ef6-ca319ab666e4",
+    "fields": [
+      "name",
+      "title_ca",
+      "title_es",
+      "title_en",
+      "complementary description",
+      "field_definition",
+      "openness_score",
+      "license_title",
+      "date_published",
+      "organization_parent_name_ca",
+      "organization_name_ca",
+      "package_count",
+      "frequency",
+      "geolocation",
+      "token_required",
+      "historical",
+      "api",
+      "total_resources",
+      "total_views",
+      "recent_views",
+      "total_downloads_by_ip",
+      "total_downloads_absolute",
+      "total_api_access_by_api",
+      "total_api_access_absolute",
+      "tags_list",
+      "fuente",
+      "author",
+      "department",
+      "url_tornada_ca",
+      "url_tornada_es",
+      "url_tornada_en",
+      "notes_ca",
+      "notes_es",
+      "notes_en",
+      "url_busqueda_ca",
+      "url_busqueda_es",
+      "url_busqueda_en",
+      "dades_alt_valor",
+      "Agenda_2030_ODS_Principal",
+      "Agenda_2030_ODS_Colateral1",
+      "Agenda_2030_ODS_Colateral2",
+      "qpj",
+      "prj",
+      "application/x-7z-compressed",
+      "qml",
+      "txt",
+      "xml",
+      "bdf",
+      "qgz",
+      "zip",
+      "wms",
+      "kml",
+      "geojson",
+      "json",
+      "html",
+      "dwg",
+      "ics",
+      "tif",
+      "csv",
+      "kmz",
+      "xlsx",
+      "rdf-linked",
+      "sbx",
+      "dgn",
+      "dat",
+      ".jpg, .eps",
+      "dbase",
+      "gtfs",
+      "gpkg",
+      "sbn",
+      "shp",
+      "application/vnd.ms-pki.seccat",
+      "rds",
+      "shx",
+      "cpg",
+      "wmts",
+      "xls",
+      "long_format",
+      "1989",
+      "1990",
+      "1991",
+      "1992",
+      "1993",
+      "1994",
+      "1995",
+      "1996",
+      "1997",
+      "1998",
+      "1999",
+      "2000",
+      "2001",
+      "2002",
+      "2003",
+      "2004",
+      "2005",
+      "2006",
+      "2007",
+      "2008",
+      "2009",
+      "2010",
+      "2011",
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024",
+      "2025",
+      "2026"
+    ]
+  },
+  "cinemes-dades-globals": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "c8ed6bcb-efc4-4cae-ab8a-6c6b10997abf",
+    "fields": [
+      "Any",
+      "Dada",
+      "Valor",
+      "Nota"
+    ]
+  },
+  "compliment-objectius-estabilitat": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "2875f462-8ab4-4591-b746-2a4c7728c696",
+    "fields": [
+      "ANY",
+      "CODI_OBJECTIU",
+      "TIPUS_OBJECTIU",
+      "DESCRIPCIO_OBJECTIU",
+      "UNITAT",
+      "Concepte",
+      "Imports_Milions€ "
+    ]
+  },
+  "contractes-menors": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "69ae574f-adfc-4660-8f81-73103de169ff",
+    "fields": [
+      "Trimestre",
+      "Tipus ens",
+      "Òrgan contractant",
+      "Tipus Contracte     ",
+      "Data \nadjudicació",
+      "Proveïdor",
+      "NIF",
+      "Objecte del contracte",
+      "Import adjudicat",
+      "Durada"
+    ]
+  },
+  "contractes-menors-a-generica": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "004b050e-d11a-4060-8f21-1ed0edb27967",
+    "fields": [
+      "Tipus ens",
+      "Òrgan contractant",
+      "Tipus contracte     ",
+      "Objecte contracte",
+      "Proveïdor",
+      "NIF",
+      "A genérica número",
+      "Import adjudicat"
+    ]
+  },
+  "dades-festival-grec": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "30cdb6ac-0e1e-4aaa-9548-e39f99464009",
+    "fields": [
+      "Any",
+      "Genere",
+      "Indicador",
+      "Valor",
+      "Nota"
+    ]
+  },
+  "dades-globals-cultura": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "4ec87891-2fc0-4a0f-82b3-b85ed1ef614c",
+    "fields": [
+      "Any",
+      "Categoria",
+      "Indicador",
+      "Valor",
+      "Nota",
+      "Font",
+      "Codi"
+    ]
+  },
+  "dades-merce": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "f463d55c-f594-4a22-b10b-a4e605b9868b",
+    "fields": [
+      "Activitat",
+      "Any",
+      "Assistents",
+      "Notes_Dades"
+    ]
+  },
+  "dades-sales-musica-viu-agrup-dimensions": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "0ec5a1a8-f188-45f2-8e76-de2aa8121dde",
+    "fields": [
+      "Any",
+      "Indicador",
+      "Dimensio_Sales",
+      "Valor",
+      "Notes_Dades"
+    ]
+  },
+  "dades-sindicals": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "1fe316c2-4305-4997-b85a-715489dcd9de",
+    "fields": [
+      "Tipus_Ens",
+      "Nom_Ens",
+      "Sindicat",
+      "Nombre_Delegats",
+      " Nombre_Persones_Dispensa",
+      "Hores_Autoritzades_Delegats",
+      "Euros_Costos_Temps_Delegats"
+    ]
+  },
+  "entitats-municipals": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "da1422e8-0f64-4484-a803-98ec2a09e4de",
+    "fields": [
+      "Nom_Entitat",
+      "Tipologia_Entitats",
+      "Parametre _consolidacio_pressupostaria_LRHL",
+      "Parametre_consolidacio_pressupostaria_LOEPSF",
+      "Parametre_consolidacio_pressupostaria_LRSAL"
+    ]
+  },
+  "evolucio-despeses-corrents-per-politiques": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "bc8e470c-1402-48ac-ab06-31d738346456",
+    "fields": [
+      "Any",
+      "Codi_Programa",
+      "Nom_Programa",
+      "Import_Milions€"
+    ]
+  },
+  "evolucio-despeses-per-capitols": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "7a2ee766-b89b-4a5c-83e2-892448d977f5",
+    "fields": [
+      "Any",
+      "Codi_Tipologia_Operacions",
+      "Tipologia_Operacions",
+      "Codi_Capitol",
+      "Nom_Capitol",
+      "Imports_Milions€"
+    ]
+  },
+  "evolucio-despeses-per-capitols-i-articles": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "17b8ada3-3134-4c0d-b336-5a7cde82758e",
+    "fields": [
+      "Any",
+      "Codi_Tipologia",
+      "Tipologia_Operacions",
+      "Codi_Capitol",
+      "Nom_Capitol",
+      "Codi_Article",
+      "Nom_Article",
+      "Imports_Milions€"
+    ]
+  },
+  "evolucio-despeses-per-unitats-organiques": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "e5b68206-8b65-4049-b51a-c308da116b72",
+    "fields": [
+      "Any",
+      "Tipus_Despesa",
+      "Codi_Organic",
+      "Descripcio_Organic",
+      "Imports_Milions€"
+    ]
+  },
+  "evolucio-deute": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "98c5dfb0-f77f-4bc1-9c34-0e2660cc0aae",
+    "fields": [
+      "Any_Deute",
+      "Deute_Milions€",
+      "%_Deute_Ingressos_Corrents_SEC"
+    ]
+  },
+  "evolucio-ingressos-per-capitols": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "563d8f31-d4ab-4cde-9704-c5b539bfe74a",
+    "fields": [
+      "Any",
+      "Codi_Tipologia_Operacions",
+      "Tipologia_Operacions",
+      "Codi_Capitol",
+      "Nom_Capitol",
+      "Imports_Milions€"
+    ]
+  },
+  "evolucio-ingressos-per-capitols-i-articles": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "45451161-d73c-4b09-a190-441c84ed7c08",
+    "fields": [
+      "Any",
+      "Codi_Tipologia",
+      "Tipologia_Operacions",
+      "Codi_Capitol",
+      "Nom_Capitol",
+      "Codi_Article",
+      "Nom_Article",
+      "Imports_Milions€"
+    ]
+  },
+  "fitxes-ocupacionals": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "eda0577b-9ed6-445b-abde-24cd65913716",
+    "fields": [
+      "Linia",
+      "Titol del contingut",
+      "Altres denominacions",
+      "Classificador del contingut per Sector",
+      "Valoració del Gestor",
+      "Descripcó del contingut (Obligatori)",
+      "Tasques",
+      "Interessos Professionals",
+      "Introducció Formació reglada",
+      "Formació reglada",
+      "Formació Complementària",
+      "Altres competències tècniques",
+      "Competencies TIC",
+      "Experiència",
+      "Competencies Clau",
+      "Jornada Laboral",
+      "Categoria Professional",
+      "Descripció autònom",
+      "Guanys mitjans",
+      "Retribució",
+      "RRHH i materials",
+      "Inversions inicials",
+      "Altres elements peculiars",
+      "Qualificacions professionals",
+      "A destacar",
+      "URL"
+    ]
+  },
+  "indicadors-transparencia-pressupostaria": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "88b1ade0-1ddb-4cb5-8733-41f7c57a82e3",
+    "fields": [
+      "Any",
+      "Indicador",
+      "Valor"
+    ]
+  },
+  "resums-trimestrals-contractacio": {
+    "reason": "Non-spatial personnel, reference or city-wide summary table; no record-level location to compare on a Barcelona map.",
+    "inspectedResource": "d0006e18-bb78-496e-920b-cd5921b2312a",
+    "fields": [
+      "_id",
+      "Trimestre",
+      "Tipus ens",
+      "Nom ens",
+      "Procediment",
+      "Tipus de contracte",
+      "Nombre",
+      "Import"
+    ]
+  },
+  "compatibilitats": {
+    "reason": "Administrative, legal or financial records without record-level location fields.",
+    "inspectedResource": "2ed7f02c-a7f7-4b6c-9982-e9b21ed25dad",
+    "fields": [
+      "Entitat",
+      "Persones autoritzades",
+      "Divisió de personal",
+      "Unitat organitzativa",
+      "Règim ",
+      "Categoria",
+      "Lloc de treball",
+      "Data de Resolució",
+      "Tipus d'Activitat",
+      "descripció"
+    ]
+  },
+  "modificacions-credit-pressupost": {
+    "reason": "Administrative, legal or financial records without record-level location fields.",
+    "inspectedResource": "4e246cac-0a93-4298-b375-3ad927a8c2fa",
+    "fields": [
+      "Any",
+      "Tipus_Resum",
+      "Codi_Resum",
+      "Concepte_Resum",
+      "Credit_Extraordinari",
+      "Suplements_Credit",
+      "Ampliacions",
+      "Transferencies_Credit(-)",
+      "Transferencies_Credit(+)",
+      " Saldo_Mini_Transferencies",
+      "Incorporacio_Romanents ",
+      "Generacio_Ingressos",
+      "Baixes_Anulacio",
+      "Ajustos_Prorroga",
+      "Total_Modificacions"
+    ]
+  },
+  "modificacions-de-contractes": {
+    "reason": "Administrative, legal or financial records without record-level location fields.",
+    "inspectedResource": "ba8abc94-1b87-4cd2-bd83-bc26a35a23aa",
+    "fields": [
+      "Tipus_Ens",
+      "Organ_Contractant",
+      "Contracte_Num",
+      "Contracte_Tipus",
+      "Contracte_Objecte",
+      "Nom_Adjudicatari",
+      "Nif_Adjudicatari",
+      "Data_Formalitzacio",
+      "Preu_Contracte_Sense_IVA",
+      "Preu_Contracte_Inclos_IVA",
+      "Data_Formalitzacio_Modificacio",
+      "Import_Modificacio_Sense_IVA",
+      "Import_Modificacio_Inclos_IVA",
+      "Modificacio_Prevista_Al_Plec_(art. 204 LCSP)",
+      "Modificacio_Prevista_Al_Plec_(art. 205 LCSP)",
+      "Variacio_Sobre_Preu_Contracte_Sense_IVA"
+    ]
+  },
+  "ordenances-municipals": {
+    "reason": "Administrative, legal or financial records without record-level location fields.",
+    "inspectedResource": "e097b4cb-48b7-4557-9a45-3db221a60263",
+    "fields": [
+      "Data_Publicacio",
+      "Data_Aprovacio",
+      "Data_Entrada_Vigor",
+      "Title_CA",
+      "Title_ES",
+      "URL_CA",
+      "URL_ES",
+      "Akoma_Ntoso_URL",
+      "Keywords_CA",
+      "Keywords_ES",
+      "Subject_Matter_CA",
+      "Subject_Matter_ES"
+    ]
+  },
+  "p-cons-inicials-segons-lgep-loepsf": {
+    "reason": "Administrative, legal or financial records without record-level location fields.",
+    "inspectedResource": "906da19d-9626-4ea0-b5d9-5644fbf74e6c",
+    "fields": [
+      "Any",
+      "Concepte",
+      "Codi_Operacio",
+      "Tipus_Operacio",
+      "Codi_Capitol",
+      "Nom_capitol",
+      "Ajuntament_Individual",
+      "Agregat_No_Consolidat",
+      "Eliminacio_Transferencies_Internes",
+      "Total_Consolidat"
+    ]
+  },
+  "registre-de-convenis": {
+    "reason": "Administrative, legal or financial records without record-level location fields.",
+    "inspectedResource": "565829ea-620e-48a6-b06b-649c75bbac02",
+    "fields": [
+      "_id",
+      "Numero_Registre",
+      "Data_Formalitzacio",
+      "Data_Finalitzacio",
+      "Subscriptor",
+      "Objecte",
+      "Objecte_Castella",
+      "Import",
+      "Gaseta",
+      "Entitats"
+    ]
+  },
+  "registre-estudis-i-informes": {
+    "reason": "Administrative, legal or financial records without record-level location fields.",
+    "inspectedResource": "bbb59174-d4b7-4a7c-b7c4-0e80d8bbf7cc",
+    "fields": [
+      "_id",
+      "Any",
+      "Trimestre",
+      "Organ_Gestor",
+      "Numero_Expedient",
+      "Objecte",
+      "Import_Adjudicat",
+      "Adjudicatari"
+    ]
+  },
+  "relacio-contractistes": {
+    "reason": "Administrative, legal or financial records without record-level location fields.",
+    "inspectedResource": "2f9b8c35-dcde-436a-8cd6-3eeaccd38701",
+    "fields": [
+      "_id",
+      "Tipus_Ens",
+      "Organ_Contractant",
+      "Nom_Proveidor",
+      "NIF",
+      "Nombre_de_Contractes",
+      "Import_Total_Adjudicat"
+    ]
+  },
+  "subvencions-transferencies-cultura": {
+    "reason": "Administrative, legal or financial records without record-level location fields.",
+    "inspectedResource": "4d0905c9-b5f2-43c9-89b4-f852952c9f4d",
+    "fields": [
+      "_id",
+      "Any",
+      "NIF",
+      "Entitat",
+      "Projecte",
+      "Import",
+      "Nota",
+      "Capitol",
+      "Tipus_de_transferencia",
+      "Nom_de_la_convocatoria",
+      "Modalitat_Programa"
+    ]
+  },
+  "transferencies-encomanes-gestio": {
+    "reason": "Administrative, legal or financial records without record-level location fields.",
+    "inspectedResource": "e4a82d9a-97a7-424c-a831-ef33b02ab655",
+    "fields": [
+      "_id",
+      "Trimestre",
+      "Tipus orgànic",
+      "Orgànic",
+      "Desc.Orgànic",
+      "Tipus subvenció",
+      "Subvenció",
+      "NIF",
+      "Nom",
+      "Descripció",
+      "Econòmic",
+      "Import D"
+    ]
+  }
+}

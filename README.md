@@ -1,6 +1,6 @@
-# Barcelona Atlas · v1.2.0
+# Barcelona Atlas · v1.3.0
 
-Explore Barcelona through municipal open data: stack heatmaps, inspect points, overlay cycling routes and polygons, colour geometry by source attributes, and browse the full dataset catalog.
+Explore Barcelona through municipal open data: stack heatmaps, inspect points, overlay cycling routes and polygons, colour geometry by source attributes, and browse datasets with coordinates or usable location references.
 
 ## Deploy to Cloudflare from GitHub
 
@@ -20,11 +20,11 @@ Open **http://localhost:5173**. Dependencies are already installed in this works
 
 If you already have a Vite server running (for example on :4000), it can use the catalog through the configured `/api` proxy. Start the backend separately with `npm start`. `npm run dev:web` starts only Vite.
 
-## Complete catalog coverage
+## Map catalog coverage
 
-The snapshot of [Open Data BCN](https://opendata-ajuntament.barcelona.cat/data/es/dataset), retrieved on 7 November 2026, contains **558 datasets and 6,825 resources**. All are searchable and linked to their official dataset pages and original downloads. Search matches titles, slugs, categories and tags; filters narrow by geographic metadata and file format.
+The original municipal snapshot contains 558 datasets and 6,825 resources. The map catalog now excludes 36 reviewed non-spatial datasets (296 resources), including the mayors list and administrative/financial summaries. Their 223 existing raw objects were removed from R2; their remaining downloads were removed from the transfer plan. Unknown sources are retained for inspection, not deleted because of a failed download.
 
-**Catalog coverage is not the same as verified map compatibility.** 249 datasets are marked geographic by the publisher. 538 datasets offer at least one reader-supported format; actual compatibility is determined when the resource is opened. The other 20 have only specialist/service formats and remain available through their original links. We have not downloaded or verified all 6,825 resources.
+The map browser selects datasets using inspected location fields and explicit spatial metadata, independently of the publisher's geographic flag. See [spatial mapping and curation](docs/spatial-catalog.md) for the exact joins, reference provenance, exclusion policy and remaining limits. A listed candidate is not a guarantee that every historical resource or specialist format can be rendered. Upload availability remains visible, and the resource selector prefers mirrored resources.
 
 | Resource type | Behavior |
 | --- | --- |
@@ -37,24 +37,26 @@ The snapshot of [Open Data BCN](https://opendata-ajuntament.barcelona.cat/data/e
 | KML | Vector geometry through GDAL |
 | WMS, WMTS, CAD, standalone SHP/sidecar files, 7z, rasters and other formats | Original-source links; no interactive parser/viewer in this release |
 
-Sources with recognized points can become heatmaps or individual-point layers. Lines and polygons retain their geometry; they are not converted into invented point locations. Numeric source attributes can colour geometry with a labelled min–max scale. Missing attribute values are grey. **Interpret units and category definitions using the original dataset documentation.** Tables containing only district/neighbourhood codes are previewed as tables: no automatic polygon joins or synthetic centroids are created.
+Sources with recognized points can become heatmaps or individual-point layers. Lines and polygons retain their geometry; they are not converted into invented point locations. Numeric source attributes can colour geometry with a labelled min–max scale. Missing attribute values are grey. **Interpret units and category definitions using the original dataset documentation.** Tables containing district, neighbourhood, census-section or statistical-area codes/names are joined to official polygons. Street codes/names join to the municipal road graph; full addresses join to exact postal points. No synthetic centroids or fuzzy geocoding are used. Postal codes show their official address coverage, not invented boundaries.
 
-The browser displays at most the first 100 table records (20 per page), with search limited to those preview rows. Up to 100 discovered columns are exposed. This is explicitly a preview; the original download provides the full data.
+The browser displays at most the first 100 table records (20 per page), with search limited to those preview rows. Up to 500 discovered columns are exposed. This is explicitly a preview; the original download provides the full data.
 
 ## Using the app
 
 1. Use the three **curated layers** for verified 2023–2025 accident and tree data.
-2. Open **Dataset catalog** or **Browse the complete catalog**.
+2. Open **Dataset catalog** or **Browse map datasets**.
 3. Search and select a dataset. Choose its published year and resource, then **Preview resource**.
 4. If provided, choose a worksheet, archive member, GPKG layer or year found inside the records.
 5. Add supported geographic data to the map. Up to six catalog overlays can be active, alongside curated layers.
 6. Use each overlay card to hide/remove it, change point rendering, colour by an attribute, inspect attribution or export GeoJSON.
 
+Record-category filters are available before adding a layer. Repeated rows at a matched location produce one feature with explicitly labelled arithmetic means and a source-row count; they are not silently summed.
+
 Catalog overlays have **independent periods**. The bottom timeline controls only curated layers. A resource without a year in its filename remains labelled **Undated / current**; retrieval/publication dates are never substituted for observation years. A filename year is a discovery hint, not proof of a full-year observation period. Record-year filters use recognized year columns (`Any`, `Year`, `NK_Any`, `Any_data`).
 
 District filters apply to curated layers and catalog overlays with recognized district codes. Other overlays remain city-wide and explicitly say so. Clicking the map provides nearby curated counts; clicking a catalog point/line/polygon in geometry view also shows source attributes. The footer’s record counts are for curated layers; catalog feature counts appear in their own cards.
 
-Share URLs preserve curated settings and catalog resource/member/year selections, visibility, metric and rendering style. Reloading a shared catalog view downloads the referenced resources again through the cached API; source availability is required. Camera position is not shared. GeoJSON exports include the selected geometry, applicable district filter and provenance. Curated CSV exports remain separate.
+Share URLs preserve curated settings and catalog resource/member/year/category selections, visibility, metric and rendering style. Reloading a shared catalog view downloads the referenced resources again through the cached API; source availability is required. Camera position is not shared. GeoJSON exports include the selected geometry, applicable district filter and provenance. Curated CSV exports remain separate.
 
 ## Data integrity and provenance
 
@@ -97,8 +99,8 @@ The workspace is configured through ignored `.env.local` with `BCN_DATA_SOURCE=r
 
 - Private raw archive: `bcn-atlas-raw/snapshots/initial-2026-11-07/raw/{dataset}/{resource}/source`.
 - Catalog, provenance and nine curated assets: `bcn-atlas-public/app/v1.2.0/data/`.
-- Derived previews: `bcn-atlas-public/processed/v2/`, generated on first request and reused until the source ETag or parser version changes.
-- The frozen plan contains **6,793 downloadable resources**. Another **32 WMS/WMTS references** are retained as metadata; a service endpoint is not an archive file.
+- Derived previews: `bcn-atlas-public/processed/v4/`, generated on first request and reused until the source ETag or parser version changes.
+- The frozen plan contains **6,497 downloadable resources** after non-spatial exclusions. Another **32 WMS/WMTS references** are retained as metadata; a service endpoint is not an archive file.
 
 ```sh
 npm run r2:publish   # Upload assets and verify each with a SHA-256 round trip
@@ -156,12 +158,13 @@ The standard OpenStreetMap basemap requires internet and has no SLA. Follow its 
 
 ```text
 src/App.tsx                 Curated explorer, catalog selection and share state
-src/CatalogExplorer.tsx     Complete catalog, resource selection, table and provenance UI
+src/CatalogExplorer.tsx     Spatial catalog, resource selection, table and provenance UI
 src/OverlayPanel.tsx        Independent catalog layer controls and exports
 src/Map.tsx                 WebGL heatmaps, points, lines, polygons and attribute popups
 src/catalog.ts              Catalog contracts, loader and attributed GeoJSON exports
 src/data.ts                 Curated configuration and spatial/URL helpers
 src/dataSource.ts           Public asset URL configuration
+server/spatial.py           Exact municipal reference joins
 server/storage.py           Server-only R2 reads and derived preview caching
 server/app.py               Bounded API and production static hosting
 server/worker.py            Isolated resource parser process

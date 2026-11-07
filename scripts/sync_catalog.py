@@ -33,7 +33,8 @@ def main():
         if len({p['name'] for p in packages}) != page['count']: raise RuntimeError('Catalog changed during pagination; retry')
         (ROOT / '.cache').mkdir(exist_ok=True)
         (ROOT / '.cache/catalog.json').write_text(json.dumps(packages))
-    catalog = build(packages)
+    from scripts.curate_catalog import curate
+    catalog = curate(build(packages))
     dest = ROOT / 'public/data/catalog.json'
     dest.with_suffix('.tmp').write_text(json.dumps(catalog, ensure_ascii=False, separators=(',', ':')))
     dest.with_suffix('.tmp').replace(dest)

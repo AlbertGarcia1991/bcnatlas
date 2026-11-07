@@ -15,7 +15,8 @@ ROOT = Path(__file__).resolve().parents[1]
 for filename in ('.env.local', '.env.secrets'):
     load_dotenv(ROOT / filename, override=False)
 
-PARSER_VERSION = '2'
+PARSER_VERSION = '4'
+SPATIAL_REFERENCE_KEY = 'references/spatial-v2.json.gz'
 
 class StorageError(Exception): pass
 class MissingObject(StorageError): pass
@@ -97,7 +98,7 @@ def raw_resource(resource, limit):
     return data, response['LastModified'].isoformat()
 
 
-def processed_key(resource, member, year):
+def processed_key(resource, member, year, filters=None):
     # Raw ETag invalidates derived data when a mirrored source changes.
     try:
         head = client().head_object(Bucket=raw_bucket(), Key=resource_key(resource))
@@ -107,7 +108,7 @@ def processed_key(resource, member, year):
         raise StorageError('Unable to check the R2 source version.') from e
     except BotoCoreError as e:
         raise StorageError('R2 is temporarily unreachable. Please retry shortly.') from e
-    identity = json.dumps([PARSER_VERSION, raw_prefix(), resource['id'], head['ETag'], member, year], separators=(',', ':'))
+    identity = json.dumps([PARSER_VERSION, SPATIAL_REFERENCE_KEY, raw_prefix(), resource['id'], head['ETag'], member, year, filters or {}], separators=(',', ':'), sort_keys=True)
     digest = hashlib.sha256(identity.encode()).hexdigest()
     return f'processed/v{PARSER_VERSION}/{resource["id"]}/{digest}.json'
 

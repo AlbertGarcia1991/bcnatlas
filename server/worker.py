@@ -11,13 +11,13 @@ try:
     request=json.load(sys.stdin)
     key = None
     if storage.source_mode() == 'r2':
-        key = storage.processed_key(request['resource'], request.get('member'), request.get('year'))
+        key = storage.processed_key(request['resource'], request.get('member'), request.get('year'), request.get('filters'))
         cached = storage.read_processed(key)
         if cached is not None:
             print(json.dumps(cached, ensure_ascii=False, separators=(',', ':'), allow_nan=False))
             sys.exit(0)
     raw,retrieved=fetch_resource(request['resource'])
-    result=prepare(raw,request['resource'],request.get('member'),request.get('year'))
+    result=prepare(raw,request['resource'],request.get('member'),request.get('year'),request.get('filters'))
     result['retrievedAt']=retrieved
     result['storageSource'] = 'Cloudflare R2' if storage.source_mode() == 'r2' else 'Municipal source'
     if key:

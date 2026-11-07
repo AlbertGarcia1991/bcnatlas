@@ -42,6 +42,7 @@ class StorageTests(unittest.TestCase):
         with patch('server.storage.client',return_value=mock):
             first=storage.processed_key(resource,None,None)
             self.assertNotEqual(first,storage.processed_key(resource,None,'2023'))
+            self.assertNotEqual(first,storage.processed_key(resource,None,None,{'Sexe':'F'}))
             mock.head_object.return_value={'ETag':'new'}
             self.assertNotEqual(first,storage.processed_key(resource,None,None))
     def test_api_serves_r2_data_without_credentials(self):

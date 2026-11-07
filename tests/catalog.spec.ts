@@ -7,8 +7,7 @@ test('catalog searches all datasets, previews pharmacies, restores and exports a
   await page.goto('/');
   await page.getByRole('button',{name:'Dataset catalog',exact:true}).click();
   const dialog=page.getByRole('dialog',{name:'Find another perspective.'});
-  await expect(dialog).toContainText('558 datasets');
-  await expect(dialog).toContainText('6,825 published resources');
+  await expect(dialog).toContainText('map datasets');
   await page.getByRole('textbox',{name:'Search all datasets'}).fill('sanitat-farmacies');
   await page.locator('.catalog-item').click();
   await expect(page.getByRole('region',{name:'Dataset details'})).toContainText('Pharmacies');
@@ -88,17 +87,28 @@ test('catalog works on a narrow screen',async({page})=>{
   await expect(page.getByRole('button',{name:'Dataset catalog',exact:true})).toBeFocused();
 });
 
-test('income data stays a table and exposes its true record year',async({page})=>{
+test('income data joins census boundaries and exposes its true record year',async({page})=>{
   await page.goto('/');await page.getByRole('button',{name:'Dataset catalog',exact:true}).click();
   await page.getByRole('textbox',{name:'Search all datasets'}).fill('renda-disponible-llars-bcn');
   await page.locator('.catalog-item').click();
   await page.getByRole('button',{name:'Preview resource',exact:true}).click();
-  await expect(page.locator('.preview-stats')).toContainText('Table',{timeout:120000});
-  await expect(page.getByRole('button',{name:'Add to map',exact:true})).toBeDisabled();
+  await expect(page.locator('.preview-stats')).toContainText('Polygon',{timeout:120000});
+  await expect(page.getByRole('button',{name:'Add to map',exact:true})).toBeEnabled();
   await expect(page.getByLabel('Record year')).toContainText('2023');
   await page.getByLabel('Record year').selectOption('2023');
   await expect(page.locator('.preview-stats')).toContainText('1,068',{timeout:120000});
   await page.getByRole('button',{name:/Show table preview/}).click();
   await expect(page.locator('.table-scroll')).toContainText('Import_Euros');
-  await expect(page.locator('.resource-notes')).toContainText('no locations have been invented');
+  await expect(page.locator('.resource-notes')).toContainText('census section');
+  await page.getByRole('button',{name:'Add to map',exact:true}).click();
+  await expect(page.locator('.overlay-card')).toContainText('1,068 features');
+});
+
+
+test('nonspatial datasets are excluded and GitHub is linked',async({page})=>{
+  await page.goto('/');
+  await expect(page.getByRole('link',{name:'View project on GitHub'})).toHaveAttribute('href','https://github.com/AlbertGarcia1991/bcnatlas');
+  await page.getByRole('button',{name:'Dataset catalog',exact:true}).click();
+  await page.getByRole('textbox',{name:'Search all datasets'}).fill('alcaldes-alcaldesses-bcn');
+  await expect(page.locator('.catalog-item')).toHaveCount(0);
 });

@@ -81,7 +81,7 @@ Open the Worker URL shown in the dashboard (`https://bcnatlas.<your-workers-subd
 1. The map loads, the 2025 accident layer shows 7,741 records, and changing years works.
 2. `/api/health` returns JSON identifying `bcnatlas-edge`.
 3. `/api/data/manifest.json` and `/api/data/catalog.json` return JSON, not the homepage HTML.
-4. `/api/ready` returns `status: ok`, `dataSource: r2`, and `datasets: 558`. This wakes the container and verifies its catalog access. If it initially returns 503, wait for provisioning and retry.
+4. `/api/ready` returns `status: ok`, `dataSource: r2`, and `datasets: 522`. This wakes the container and verifies its catalog access. If it initially returns 503, wait for provisioning and retry.
 5. In **Dataset catalog**, search `sanitat-farmacies`, preview it and add it to the map. This checks raw-data reads, the Python parser, and processed-preview storage.
 6. Open `/api/data/mirror-status.json` for archive availability. Uploading the application does not finish the separate bulk archive transfer; missing resources remain explicitly marked until mirrored.
 

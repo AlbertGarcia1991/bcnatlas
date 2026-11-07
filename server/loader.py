@@ -22,6 +22,7 @@ from shapely.ops import transform
 from shapely import from_wkb, from_wkt
 from defusedxml import ElementTree
 from server import storage
+from server import spatial
 
 ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / '.cache/resources'
@@ -190,7 +191,7 @@ def read_rows(raw, fmt, name, member=None):
 
 LAT={'lat','latitudy','stationlat','latitude','latitud','latitudwgs84','geolat','latitudewgs84','geoepgs4326lat','geoepsg4326lat'}
 LON={'lon','longitudx','stationlng','lng','long','longitude','longitud','longitudwgs84','geolon','longitudewgs84','geoepgs4326lon','geoepsg4326lon'}
-DISTRICT={'codidistricte','districtcode','addressesdistrictid','districtid','districted'}
+DISTRICT=set(spatial.ALIASES['district'])
 
 def transform_geometry(geom, crs):
     if not geom: return None
@@ -208,14 +209,14 @@ def transform_geometry(geom, crs):
     elif geometry.geom_type=='MultiPoint': geometry=geometry.intersection(CITY_ENVELOPE)
     return mapping(geometry) if not geometry.is_empty else None
 
-def prepare(raw, resource, member=None, year=None):
+def prepare(raw, resource, member=None, year=None, filters=None):
     rows,crs,members,chosen=read_rows(raw,resource['format'],resource['name'],member)
     total=len(rows); flat=[]; geometries=[]
     for row in rows:
         if not isinstance(row,dict): continue
         if row.get('type')=='Feature': geometries.append(row.get('geometry'));flat.append(flatten(row.get('properties') or {}))
         else: geometries.append(row.get('_geometry'));flat.append(flatten({k:v for k,v in row.items() if k!='_geometry'}))
-    fields=list(dict.fromkeys(k for row in flat[:500] for k in row))[:100]
+    fields=list(dict.fromkeys(k for row in flat for k in row))[:500]
     normalized={norm(k):k for k in fields}
     lat=next((normalized[k] for k in LAT if k in normalized),None)
     lon=next((normalized[k] for k in LON if k in normalized),None)
@@ -227,45 +228,110 @@ def prepare(raw, resource, member=None, year=None):
     xkey=next((normalized[k] for k in ['xetrs89','coordenadaxetrs89','utmxetrs89','coordenadautmxed50'] if k in normalized),None)
     ykey=next((normalized[k] for k in ['yetrs89','coordenadayetrs89','utmyetrs89','coordenadautmyed50'] if k in normalized),None)
     projector=Transformer.from_crs(23031 if xkey and 'ed50' in norm(xkey) else 25831,4326,always_xy=True) if xkey and ykey else None
-    geomkey=next((normalized[k] for k in ['geometry','geom','geometria','wkt'] if k in normalized),None)
+    geomkey=next((normalized[k] for k in ['geometriawgs84','geometry','geom','geometria','wkt','geometriaetrs89'] if k in normalized),None)
+    fieldcrs = 'EPSG:25831' if geomkey and norm(geomkey) == 'geometriaetrs89' else 'EPSG:4326' if geomkey and norm(geomkey) == 'geometriawgs84' else crs
+    cols = spatial.columns(fields)
+    joinable = any(cols.values()) or resource.get('_dataset_id') in spatial.RELATIONS
+    ref = None
+    filters = filters or {}
+    if any(k not in fields for k in filters): raise ResourceError('Unknown record filter field.')
+    spatialfields = {v for v in cols.values() if v} | {lat, lon, yearfield, xkey, ykey, geomkey}
+    filter_options = []
+    for field in fields:
+        if field in spatialfields: continue
+        unique = set()
+        for row in flat:
+            value = scalar(row.get(field))
+            if value is not None: unique.add(str(value))
+            if len(unique) > 40: break
+        values = sorted(unique)
+        if 1 < len(values) <= 40 and (any(numeric(v) is None for v in values) or norm(field) in ('sexe','mes','edatq','nacionalitatg')):
+            filter_options.append({'field': field, 'values': values})
+    categorical_fields = {o['field'] for o in filter_options} | {f for f in fields if norm(f).startswith(('codi', 'id')) or norm(f) in ('sexe','mes','edatq','nacionalitatg')}
     features=[];preview=[];selected=0;excluded=0;geometrytypes=set();numericstats={};unmapped=0
+    joins = {}; matched_rows = 0; methods = set(); joined_geometries = {}
     for row,geom in zip(flat,geometries):
+        geometry_crs = crs
         if year and str(row.get(yearfield))!=year: continue
+        if any(str(scalar(row.get(k))) != v for k,v in filters.items()): continue
         selected+=1
         props={k:scalar(row.get(k)) for k in fields}
-        if len(preview)<100: preview.append(props)
+        if len(preview)<100: preview.append(props.copy())
         if not geom and lat and lon:
             x,y=numeric(row.get(lon)),numeric(row.get(lat))
-            if x is not None and y is not None: geom={'type':'Point','coordinates':[x,y]}
+            if x is not None and y is not None:
+                geom={'type':'Point','coordinates':[x,y]}; geometry_crs = 'EPSG:4326'
         elif not geom and projector:
             x,y=numeric(row.get(xkey)),numeric(row.get(ykey))
-            if x is not None and y is not None: geom={'type':'Point','coordinates':list(projector.transform(x,y))}
-        elif not geom and geomkey:
+            if x is not None and y is not None:
+                geom={'type':'Point','coordinates':list(projector.transform(x,y))}; geometry_crs = 'EPSG:4326'
+        if not geom and geomkey:
             try:
                 v=row[geomkey]
                 geom=v if isinstance(v,dict) else json.loads(v) if str(v).startswith('{') else mapping(from_wkt(v))
+                geometry_crs = fieldcrs
             except Exception: pass
+        match = None; method = ''; matchkey = ''
+        if not geom and joinable:
+            if ref is None: ref = spatial.reference()
+            match, method, matchkey = spatial.resolve(row, cols, ref, resource.get('_dataset_id', ''))
+            if match:
+                geom = match['geometry']; methods.add(method)
+                props['_location_method'] = method
+                props['_location_name'] = match['name']
         if geom:
-            try: geom=transform_geometry(geom,crs)
+            try:
+                if match:
+                    identity = method + ':' + matchkey
+                    if identity not in joined_geometries: joined_geometries[identity] = transform_geometry(geom, 'EPSG:4326')
+                    geom = joined_geometries[identity]
+                else: geom=transform_geometry(geom,geometry_crs)
             except Exception: geom=None
             if geom:
                 geometrytypes.add(geom['type'])
-                props['_district']=int(numeric(row.get(district)) or 0) if district else 0
-                features.append({'type':'Feature','geometry':geom,'properties':props})
-                for key,value in props.items():
-                    n=numeric(value)
-                    if key!='_district' and n is not None:
-                        lo,hi,count=numericstats.get(key,(n,n,0));numericstats[key]=(min(lo,n),max(hi,n),count+1)
+                props['_district']=match['district'] if match else int(numeric(row.get(district)) or 0) if district else 0
+                if match and match.get('districts'): props['_districts'] = match['districts']
+                matched_rows += 1
+                feature = {'type':'Feature','geometry':geom,'properties':props}
+                if match:
+                    identity = method + ':' + matchkey
+                    if identity not in joins:
+                        joins[identity] = {'feature': feature, 'rows': 0, 'numbers': {}}
+                        features.append(feature)
+                    group = joins[identity]; group['rows'] += 1
+                    for key,value in props.items():
+                        n = numeric(value)
+                        if key not in spatialfields | categorical_fields and not key.startswith('_') and n is not None:
+                            total_n, count_n = group['numbers'].get(key, (0, 0)); group['numbers'][key] = (total_n + n, count_n + 1)
+                        elif group['feature']['properties'].get(key) != value:
+                            group['feature']['properties'].pop(key, None)
+                else: features.append(feature)
             else: excluded+=1
         else: unmapped+=1
     if len(features)>MAX_FEATURES: raise ResourceError('More than 150,000 map features. Select a year or download the source for desktop GIS.')
     if not selected: raise ResourceError('This resource has no records to preview.')
+    for group in joins.values():
+        props = group['feature']['properties']; props['_records'] = group['rows']
+        for key, (total_n, count_n) in group['numbers'].items(): props[key] = total_n / count_n
+    for feature in features:
+        for key,value in feature['properties'].items():
+            n = numeric(value)
+            if (key == '_records' or (not key.startswith('_') and key not in spatialfields | categorical_fields)) and n is not None:
+                lo,hi,count=numericstats.get(key,(n,n,0));numericstats[key]=(min(lo,n),max(hi,n),count+1)
     numericfields=[{'name':k,'min':v[0],'max':v[1],'count':v[2]} for k,v in numericstats.items() if v[2] >= max(1,len(features)*.5) and norm(k) not in LAT|LON|DISTRICT and k!=yearfield and v[0]!=v[1]]
     fc={'type':'FeatureCollection','features':features}
     result={'totalRows':total,'selectedRows':selected,'mappedCount':len(features),'excluded':excluded,'withoutGeometry':unmapped,'fields':fields,'preview':preview,'geometry':fc,'geometryTypes':sorted(geometrytypes),'numericFields':numericfields,'years':years,'yearField':yearfield,'selectedYear':year,'members':members,'member':chosen,'hasDistrict':bool(district),'sourceSha256':hashlib.sha256(raw).hexdigest(),'notes':[]}
+    result.update(matchedRows=matched_rows, locationMethods=sorted(methods), filters=filters, filterOptions=filter_options, aggregated=any(g['rows'] > 1 for g in joins.values()))
+    result['hasDistrict'] = any(f['properties'].get('_district') or f['properties'].get('_districts') for f in features)
+    if joins:
+        result['referenceProvenance'] = ref['provenance']
+        result['notes'].append('Matched to official municipal references by ' + ', '.join(sorted(methods)) + '. Unmatched locations are omitted, never guessed. Current boundaries are used, including for historical observations.')
+        result['notes'].append('One feature per matched location. Repeated records use the arithmetic mean of each numeric attribute; _records is the number of matched source rows. Filter categories and years before comparing values. Means are not totals or population-weighted rates.')
+        if 'street graph' in methods: result['notes'].append('Street geometry connects official road-graph nodes; it is not a building location. District filtering includes streets that intersect the selected district and retains their full geometry.')
+        if 'postal address coverage' in methods: result['notes'].append('Postal-code data is shown on the official address points covered by that postcode. These points indicate coverage, not individual measured observations or postal boundaries.')
     if not features: result['notes'].append('No supported coordinate or geometry fields were found. This resource is available as a table; no locations have been invented.')
     if unmapped or excluded: result['notes'].append(f'{unmapped:,} records have no recognized geometry; {excluded:,} invalid or outside the Barcelona envelope are excluded from the map.')
-    if not district: result['notes'].append('No recognized district code. This overlay is city-wide and is not affected by the curated district filter.')
+    if not result['hasDistrict']: result['notes'].append('No recognized district code. This overlay is city-wide and is not affected by the curated district filter.')
     if chosen: result['notes'].append('Showing archive member, worksheet or geometry layer: '+chosen)
     result['notes'].append('Coordinates use the source CRS when declared. Lines and polygons are clipped to the Barcelona sanity envelope and simplified by ~1 metre. Counts refer to source features, not necessarily unique places.')
     # Prevent unexpectedly huge responses from very complex geometry.

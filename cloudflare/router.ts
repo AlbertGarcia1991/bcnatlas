@@ -30,7 +30,7 @@ export async function route(request: Request, env: RouterEnv, backend: Backend):
   if (request.method !== 'GET') return jsonError('This endpoint requires GET.', 405, { Allow: 'GET' });
   const readiness = url.pathname === '/api/ready';
   if (!readiness && !resourcePath.test(url.pathname)) return jsonError('Unknown API route.', 404);
-  if ([...url.searchParams.keys()].some(k => !['member', 'year'].includes(k)) || url.searchParams.getAll('year').length > 1 || url.searchParams.getAll('member').length > 1 || (url.searchParams.get('member') || '').length > 300 || (url.searchParams.has('year') && !/^(19|20)\d{2}$/.test(url.searchParams.get('year')!))) return jsonError('Invalid resource filters.', 400);
+  if ([...url.searchParams.keys()].some(k => !['member', 'year', 'filters'].includes(k)) || url.searchParams.getAll('filters').length > 1 || (url.searchParams.get('filters') || '').length > 4096 || url.searchParams.getAll('year').length > 1 || url.searchParams.getAll('member').length > 1 || (url.searchParams.get('member') || '').length > 300 || (url.searchParams.has('year') && !/^(19|20)\d{2}$/.test(url.searchParams.get('year')!))) return jsonError('Invalid resource filters.', 400);
   try {
     const allowed = await env.PREVIEW_LIMITER.limit({ key: request.headers.get('CF-Connecting-IP') || 'unknown' });
     if (!allowed.success) return jsonError('Too many preview requests. Please retry in a minute.', 429, { 'Retry-After': '60' });
