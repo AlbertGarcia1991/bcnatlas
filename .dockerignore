@@ -3,3 +3,5 @@
 !requirements.txt
 !server/
 !server/*.py
+!config/
+!config/analytics-release.json

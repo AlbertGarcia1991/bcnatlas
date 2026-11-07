@@ -13,7 +13,13 @@ def upload(path):
     return name
 
 def main():
-    files=[p for p in OUT.rglob('*') if p.is_file() and p.name!='manifest.json']
+    manifest=json.loads((OUT/'manifest.json').read_text())
+    names=['top-associations.json','diagnostics.json','variables.json.gz','variable-inventory.json.gz']
+    for period,meta in manifest['periods'].items():
+        names.append(f'variables/{period}.json')
+        names.extend(f'pairs/{period}-{shard}.json' for shard in meta['shards'])
+    files=[OUT/name for name in names]
+    if not all(path.is_file() for path in files):raise ValueError('Evidence bundle is incomplete')
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
         for i,name in enumerate(pool.map(upload,files),1):
             if i%25==0:print(f'Published {i}/{len(files)} analytics assets',flush=True)
